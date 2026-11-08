@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>Team Info | Beyond Rayfel</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@800;900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* INDEX.HTML İLE UYUMLU RENK PALETİ VE FONT DEĞİŞKENLERİ */
+        :root {
+            --void: #06070c;
+            --bone: #ece3d0;
+            --rust: #b5532e;
+            --ochre: #d49a58;
+            --ice: #5fd9c3;
+            --dim: #8a92a8;
+            --line: rgba(95, 217, 195, 0.24);
+            --accent-neon-yellow: #e6f854;
+            --accent-cyan: #00eab1;
+            --accent-blue: #6692ff;
+            --f1-red: #e8002d;
+            --display: 'Big Shoulders Display', 'Arial Narrow', Impact, sans-serif;
+            --mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+            color-scheme: dark;
+        }
+
+        /* GENEL AYARLAR */
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        html, body { min-height: 100%; margin: 0; padding: 0; }
+        body { 
+            background: var(--void); 
+            color: var(--bone); 
+            font-family: var(--mono); 
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* DİNAMİK CANVAS UZAY VE GEZEGEN ARKA PLANI */
+        canvas { display: block; }
+        .sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .world { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 0.6; }
+        .orb { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+        /* SAYFA İÇERİK KATMANI */
+        .content-wrapper {
+            position: relative;
+            z-index: 10;
+            padding: 40px 24px 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* HEADER & NAV */
+        header { 
+            width: 100%;
+            max-width: 1100px;
+            background: rgba(7, 9, 17, 0.75); 
+            backdrop-filter: blur(14px); 
+            -webkit-backdrop-filter: blur(14px);
+            padding: 16px 30px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border: 1px solid var(--line); 
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--ice);
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            border: 1px solid var(--line);
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.25s ease;
+            background: rgba(95, 217, 195, 0.05);
+        }
+        .back-btn:hover {
+            background: var(--ice);
+            color: var(--void);
+            box-shadow: 0 0 15px rgba(95, 217, 195, 0.4);
+        }
+
+        .header-title h1 {
+            font-family: var(--display);
+            font-size: clamp(24px, 4vw, 36px);
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--bone);
+        }
+        .header-title p {
+            margin: 2px 0 0;
+            color: var(--ice);
+            font-size: 11px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* HERO BAŞLIK */
+        .hero-section { 
+            text-align: center; 
+            margin-bottom: 50px;
+        }
+        .hero-section .page-title { 
+            font-family: var(--display); 
+            font-size: clamp(36px, 6vw, 64px); 
+            font-weight: 900;
+            letter-spacing: 0.08em; 
+            color: var(--bone); 
+            text-transform: uppercase; 
+            text-shadow: 0 0 20px rgba(95, 217, 195, 0.3);
+            margin: 0;
+        }
+        .hero-section p { 
+            letter-spacing: 0.22em; 
+            color: var(--ice); 
+            margin-top: 8px; 
+            font-size: 12px; 
+            text-transform: uppercase;
+        }
+
+        /* EKİP KARTLARI KONTEYNERİ */
+        .team-container {
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .team-card {
+            background: rgba(7, 9, 17, 0.72); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 12px; 
+            border: 1px solid var(--line); 
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            padding: 32px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 32px;
+            align-items: center;
+        }
+        
+        .team-card:hover {
+            border-color: var(--ice);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(95, 217, 195, 0.15);
+        }
+
+        .team-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--ice);
+        }
+        .team-card:nth-child(even)::before { background: var(--accent-neon-yellow); }
+        .team-card:nth-child(3n)::before { background: var(--f1-red); }
+        .team-card:nth-child(4n)::before { background: var(--accent-blue); }
+
+        /* ÜYE PROFİL SOL KISIM */
+        .member-profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border-right: 1px solid var(--line);
+            padding-right: 24px;
+        }
+
+        .member-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            background: var(--void);
+            border: 2px solid var(--ice);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--display);
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--bone);
+            margin-bottom: 14px;
+            box-shadow: 0 0 16px rgba(95, 217, 195, 0.25);
+        }
+
+        .member-name {
+            font-family: var(--display);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--bone);
+            margin: 0 0 6px 0;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .member-role {
+            font-size: 10px;
+            color: var(--ice);
+            letter-spacing: 0.16em;
+            background: rgba(95, 217, 195, 0.1);
+            border: 1px solid rgba(95, 217, 195, 0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        /* ÜYE GÖREV / MARTIAN GUIDE DETAYLARI */
+        .member-details h3 {
+            font-family: var(--display);
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent-neon-yellow);
+            letter-spacing: 0.14em;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mission-text {
+            color: var(--dim);
+            font-size: 13px;
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .survival-specs {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .survival-specs li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            color: var(--bone);
+            font-size: 12px;
+        }
+
+        .survival-specs li i {
+            position: absolute;
+            left: 0; top: 4px;
+            color: var(--ice);
+            font-size: 11px;
+        }
+
+        /* FOOTER */
+        footer { 
+            text-align: center; 
+            padding: 40px; 
+            font-size: 11px; 
+            color: var(--dim);
+            letter-spacing: 0.2em; 
+            text-transform: uppercase;
+            margin-top: 40px;
+        }
+        footer b { color: var(--bone); }
+
+        /* RESPONSIVE */
+        @media (max-width: 900px) {
+            .team-card {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 24px;
+            }
+            .member-profile {
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+                padding-right: 0;
+                padding-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- INDEX.HTML İLE BİREBİR AYNI 3D GEZEGEN VE UZAY CANVAS YAPISI -->
+<canvas class="sky" id="sky" aria-hidden="true"></canvas>
+<div class="world" id="world">
+    <canvas class="orb" id="orb" aria-hidden="true"></canvas>
+</div>
+
+<div class="content-wrapper">
+    <header>
+        <div class="header-title">
+            <h1>Beyond Rayfel</h1>
+            <p>Team Information & Task Force</p>
+        </div>
+        <a href="index.html" class="back-btn">&larr; Main Page</a>
+    </header>
+
+    <section class="hero-section">
+        <h1 class="page-title">CREW MANIFEST</h1>
+        <p>THE SURVIVAL MARTIAN GUIDE MAP • TASK FORCE</p>
+    </section>
+
+    <div class="team-container">
+
+        <!-- 1. KUZEY YURDAKUL -->
+        <div class="team-card">
+            <div class="member-profile">
+                <div class="member-avatar">KY</div>
+                <h2 class="member-name">Kuzey Yurdakul</h2>
+                <span class="member-role">Team Leader</span>
+            </div>
+            <div class="member-details">
+                <h3><i class="fa-solid fa-compass-drafting"></i> Martian Guide Map Assignment</h3>
+                <p class="mission-text">Mars koloni operasyonlarının genel komutası, stratejik rota planlaması ve habitat içi kriz yönetimi liderliği.</p>
+                <ul class="survival-specs">
+                    <li><i class="fa-solid fa-check"></i> Kraterler arası ana geçiş güzergahlarının haritalandırılması ve risk analizi.</li>
+                    <li><i class="fa-solid fa-check"></i> Koloni içi birimler arası koordinasyon ve acil durum protokollerinin yürütülmesi.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 2. ADA ÖZKAN -->
+        <div class="team-card">
+            <div class="member-profile">
+                <div class="member-avatar">AÖ</div>
+                <h2 class="member-name">Ada Özkan</h2>
+                <span class="member-role">Web & Simulation Architect</span>
+            </div>
+            <div class="member-details">
+                <h3><i class="fa-solid fa-laptop-code"></i> Martian Guide Map Assignment</h3>
+                <p class="mission-text">Koloni haberleşme ağının, arayüz simülasyonlarının ve Mars telemetri panellerinin kod mimarisinin inşası.</p>
+                <ul class="survival-specs">
+                    <li><i class="fa-solid fa-check"></i> Habitat durumunu ve yaşamsal verileri anlık takip eden web tabanlı kontrol panelinin geliştirilmesi.</li>
+                    <li><i class="fa-solid fa-check"></i> Rota optimizasyon algoritmaları ve veri akış sistemlerinin entegrasyonu.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3. UTKU TUNA DENİZLİ -->
+        <div class="team-card">
+            <div class="member-profile">
+                <div class="member-avatar">UT</div>
+                <h2 class="member-name">Utku Tuna Denizli</h2>
+                <span class="member-role">Software & Data Engineer</span>
+            </div>
+            <div class="member-details">
+                <h3><i class="fa-solid fa-database"></i> Martian Guide Map Assignment</h3>
+                <p class="mission-text">Mars yüzeyinden toplanan çevresel sensör verilerinin işlenmesi, depolanması ve modelleme süreçleri.</p>
+                <ul class="survival-specs">
+                    <li><i class="fa-solid fa-check"></i> Atmosferik basınç ve sıcaklık dalgalanmalarının istatistiksel analiz yazılımları.</li>
+                    <li><i class="fa-solid fa-check"></i> Görev kritik verilerin güvenli depolama ve senkronizasyon altyapısının kurulması.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 4. SARP EKİCİ -->
+        <div class="team-card">
+            <div class="member-profile">
+                <div class="member-avatar">SE</div>
+                <h2 class="member-name">Sarp Ekici</h2>
+                <span class="member-role">Hardware & Robotics Specialist</span>
+            </div>
+            <div class="member-details">
+                <h3><i class="fa-solid fa-microchip"></i> Martian Guide Map Assignment</h3>
+                <p class="mission-text">Gömülü sistemler, keşif robotik donanımları ve yüzey mesafe ölçüm sensörlerinin entegrasyonu.</p>
+                <ul class="survival-specs">
+                    <li><i class="fa-solid fa-check"></i> Zemin arızalarını ve engelleri tespit eden ultrasonik/optik sensör devrelerinin tasarımı.</li>
+                    <li><i class="fa-solid fa-check"></i> Mikrodenetleyici tabanlı donanım-yazılım ko-dizaynı ve güç dağılım kontrolü.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 5. ÇINAR ÖZCAN -->
+        <div class="team-card">
+            <div class="member-profile">
+                <div class="member-avatar">ÇÖ</div>
+                <h2 class="member-name">Çınar Özcan</h2>
+                <span class="member-role">UI/UX & Logistics Coordinator</span>
+            </div>
+            <div class="member-details">
+                <h3><i class="fa-solid fa-map-location-dot"></i> Martian Guide Map Assignment</h3>
+                <p class="mission-text">Rehber harita arayüzlerinin kullanıcı deneyimi optimizasyonu ve saha lojistik kaynak takibi.</p>
+                <ul class="survival-specs">
+                    <li><i class="fa-solid fa-check"></i> Kaşiflerin harita üzerinde en verimli ve sezgisel şekilde yön bulmasını sağlayacak arayüz tasarımı.</li>
+                    <li><i class="fa-solid fa-check"></i> Su, oksijen ve enerji ikmal noktalarının harita üzerindeki lojistik dağılım planlaması.</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>&copy; <b>BEYOND RAYFEL</b> • 2026 NASA SPACE APPS CHALLENGE</footer>
+</div>
+
+<!-- INDEX.HTML GEZEGEN VE UZAY SİMÜLASYON SCRIPT KODU -->
+<script>
+(function () {
+  'use strict';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var sky = document.getElementById('sky'), orb = document.getElementById('orb');
+  var sctx = sky.getContext('2d'), octx = orb.getContext('2d');
+
+  var TAU = Math.PI * 2;
+  var ELEV = 22 * Math.PI / 180, PSI = -22 * Math.PI / 180;
+  var K = Math.sin(ELEV), COSP = Math.cos(PSI), SINP = Math.sin(PSI);
+  var RING_IN = 1.30, RING_OUT = 2.17;
+
+  var W, H, DPR, R, CX, CY, planetTex, ringBack, ringFront, ringSize, bgCanvas, stars = [];
+
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function smooth(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function hash(x, y) {
+    var h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+  }
+  function vnoise(x, y) {
+    var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+    var u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+    var a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  }
+  function fbm1(t) {
+    return vnoise(t, 0.5) * 0.5 + vnoise(t * 2.1, 1.5) * 0.3 + vnoise(t * 4.3, 2.5) * 0.2;
+  }
+
+  function buildBackground() {
+    bgCanvas = document.createElement('canvas');
+    bgCanvas.width = Math.round(W * DPR); bgCanvas.height = Math.round(H * DPR);
+    var g = bgCanvas.getContext('2d'); g.scale(DPR, DPR);
+    g.fillStyle = '#06070c'; g.fillRect(0, 0, W, H);
+    var m = Math.max(W, H);
+    function glow(x, y, r, rgba) {
+      var gr = g.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, rgba); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    }
+    glow(W * 0.82, H * 0.22, m * 0.7, 'rgba(16,72,70,0.34)');
+    glow(W * 0.12, H * 0.92, m * 0.6, 'rgba(92,38,22,0.30)');
+    glow(-W * 0.05, -H * 0.1, m * 0.8, 'rgba(214,154,88,0.16)');
+  }
+  function buildStars() {
+    var rng = mulberry32(2026), n = clamp(Math.round(W * H / 2800), 160, 800);
+    var cols = ['236,227,208', '236,227,208', '169,214,240', '212,154,88'];
+    var depths = [0.25, 0.55, 1];
+    stars = [];
+    for (var i = 0; i < n; i++) {
+      var d = depths[Math.floor(rng() * 3)];
+      stars.push({
+        x: rng() * W, y: rng() * H, d: d, r: (0.35 + rng() * 0.85) * (0.6 + d * 0.6),
+        ph: rng() * TAU, sp: 0.6 + rng() * 1.8, c: cols[Math.floor(rng() * cols.length)]
+      });
+    }
+  }
+  function drawSky(t) {
+    sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    sctx.globalAlpha = 1;
+    sctx.drawImage(bgCanvas, 0, 0, W, H);
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      var tw = reduce ? 1 : 0.55 + 0.45 * Math.sin(t * s.sp + s.ph);
+      sctx.globalAlpha = tw * (0.3 + 0.7 * s.d);
+      sctx.fillStyle = 'rgb(' + s.c + ')';
+      sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, TAU); sctx.fill();
+    }
+    sctx.globalAlpha = 1;
+  }
+
+  var RAMP = [[0, 56, 28, 22], [0.25, 132, 66, 38], [0.5, 196, 134, 78], [0.75, 226, 190, 140], [1, 242, 230, 204]];
+  function rampColor(v, out) {
+    v = clamp(v, 0, 1);
+    for (var i = 1; i < RAMP.length; i++) {
+      if (v <= RAMP[i][0]) {
+        var a = RAMP[i - 1], b = RAMP[i], t = (v - a[0]) / (b[0] - a[0]);
+        out[0] = a[1] + (b[1] - a[1]) * t; out[1] = a[2] + (b[2] - a[2]) * t; out[2] = a[3] + (b[3] - a[3]) * t;
+        return;
+      }
+    }
+    out[0] = 242; out[1] = 230; out[2] = 204;
+  }
+  function buildPlanet() {
+    var D = Math.min(Math.round(2 * R * DPR), 1000);
+    var c = document.createElement('canvas'); c.width = c.height = D;
+    var g = c.getContext('2d'), img = g.createImageData(D, D), d = img.data, r = D / 2;
+    var cE = Math.cos(ELEV), sE = Math.sin(ELEV);
+    var Lx = -0.62, Ly = -0.5, Lz = 0.6, ll = Math.sqrt(Lx * Lx + Ly * Ly + Lz * Lz);
+    Lx /= ll; Ly /= ll; Lz /= ll;
+    var col = [0, 0, 0];
+    for (var y = 0; y < D; y++) {
+      var sy = (y + 0.5 - r) / r;
+      for (var x = 0; x < D; x++) {
+        var sx = (x + 0.5 - r) / r, rr = sx * sx + sy * sy;
+        if (rr >= 1) continue;
+        var z = Math.sqrt(1 - rr);
+        var x1 = sx * COSP + sy * SINP, y1 = -sx * SINP + sy * COSP;
+        var sinLat = clamp(-y1 * cE + z * sE, -1, 1);
+        var lon = Math.atan2(y1 * sE + z * cE, x1);
+        var cl = Math.sqrt(1 - sinLat * sinLat);
+        var ux = Math.cos(lon) * cl, uz = Math.sin(lon) * cl;
+        var warp = (vnoise(ux * 2.5 + 5.5 + sinLat * 1.7, uz * 2.5 + sinLat * 5) - 0.5) * 0.2
+                 + (vnoise(ux * 7 + 2, uz * 7 + sinLat * 16) - 0.5) * 0.05;
+        var s = sinLat + warp;
+        var v = 0.5 + (fbm1(s * 7) - 0.5) * 1.7 + (vnoise(s * 45, 0.7) - 0.5) * 0.12;
+        rampColor(v, col);
+        var dl = lon - 0.9; dl = Math.atan2(Math.sin(dl), Math.cos(dl));
+        var ex = dl * cl / 0.30, ey = (sinLat - 0.36) / 0.075, e = ex * ex + ey * ey;
+        if (e < 1) {
+          var st = 1 - e, rim = smooth(0.55, 0.95, e) * 0.35;
+          col[0] = lerp(col[0], 150, st * 0.75); col[1] = lerp(col[1], 64, st * 0.75); col[2] = lerp(col[2], 38, st * 0.75);
+          col[0] = lerp(col[0], 236, rim); col[1] = lerp(col[1], 200, rim); col[2] = lerp(col[2], 150, rim);
+        }
+        var pol = smooth(0.72, 1, Math.abs(sinLat)) * 0.55;
+        col[0] = lerp(col[0], 64, pol); col[1] = lerp(col[1], 58, pol); col[2] = lerp(col[2], 74, pol);
+        var lam = sx * Lx + sy * Ly + z * Lz;
+        var light = 0.05 + 0.95 * smooth(-0.15, 0.85, lam);
+        light *= 0.55 + 0.45 * Math.sqrt(z);
+        var rimG = Math.pow(1 - z, 3) * Math.max(0, lam + 0.3) * 0.5;
+        var i = (y * D + x) * 4;
+        d[i] = clamp(col[0] * light + 110 * rimG, 0, 255);
+        d[i + 1] = clamp(col[1] * light + 160 * rimG, 0, 255);
+        d[i + 2] = clamp(col[2] * light + 200 * rimG, 0, 255);
+        d[i + 3] = 255 * clamp((1 - rr) / 0.012, 0, 1);
+      }
+    }
+    g.putImageData(img, 0, 0);
+    planetTex = c;
+  }
+
+  function dens(u) {
+    var d = 0.20 * smooth(1.30, 1.34, u) * (1 - smooth(1.50, 1.54, u));
+    d += 0.9 * smooth(1.50, 1.57, u) * (1 - smooth(1.92, 1.95, u));
+    d += 0.64 * smooth(1.99, 2.02, u) * (1 - smooth(2.14, 2.17, u));
+    d *= 1 - 0.92 * smooth(2.085, 2.09, u) * (1 - smooth(2.105, 2.11, u));
+    d *= 0.62 + 0.62 * vnoise(u * 60, 7.3);
+    return clamp(d, 0, 1);
+  }
+  function ringRGB(u) {
+    var t = (u - 1.3) / 0.87, a, b, k;
+    if (t < 0.45) { a = [178, 128, 84]; b = [236, 222, 196]; k = t / 0.45; }
+    else { a = [236, 222, 196]; b = [188, 208, 224]; k = (t - 0.45) / 0.55; }
+    return Math.round(lerp(a[0], b[0], k)) + ',' + Math.round(lerp(a[1], b[1], k)) + ',' + Math.round(lerp(a[2], b[2], k));
+  }
+  function buildRings() {
+    var ls = Math.min(DPR, 1.5), Sc = Math.ceil(2 * RING_OUT * R + 24);
+    function layer(front) {
+      var c = document.createElement('canvas'); c.width = c.height = Math.round(Sc * ls);
+      var g = c.getContext('2d');
+      g.setTransform(ls, 0, 0, ls, 0, 0);
+      g.translate(Sc / 2, Sc / 2); g.rotate(PSI); g.scale(1, K);
+      g.beginPath();
+      if (front) g.rect(-Sc, -0.7, 2 * Sc, Sc); else g.rect(-Sc, -Sc, 2 * Sc, Sc + 0.7);
+      g.clip();
+      var step = 0.0055;
+      for (var u = RING_IN; u <= RING_OUT; u += step) {
+        var dd = dens(u);
+        if (dd < 0.015) continue;
+        g.strokeStyle = 'rgba(' + ringRGB(u) + ',' + (dd * 0.6).toFixed(3) + ')';
+        g.lineWidth = step * R * 1.6;
+        g.beginPath(); g.arc(0, 0, u * R, 0, TAU); g.stroke();
+      }
+      return c;
+    }
+    ringBack = layer(false); ringFront = layer(true); ringSize = Sc;
+  }
+
+  function renderOrb() {
+    octx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    octx.clearRect(0, 0, W, H);
+    var S = ringSize;
+    octx.drawImage(ringBack, CX - S / 2, CY - S / 2, S, S);
+    var gr = octx.createRadialGradient(CX, CY, R * 0.9, CX, CY, R * 1.4);
+    gr.addColorStop(0, 'rgba(212,154,88,0.22)'); gr.addColorStop(1, 'rgba(212,154,88,0)');
+    octx.fillStyle = gr; octx.beginPath(); octx.arc(CX, CY, R * 1.4, 0, TAU); octx.fill();
+    octx.drawImage(planetTex, CX - R, CY - R, 2 * R, 2 * R);
+    octx.drawImage(ringFront, CX - S / 2, CY - S / 2, S, S);
+  }
+
+  function setup() {
+    W = window.innerWidth; H = window.innerHeight; DPR = Math.min(window.devicePixelRatio || 1, 2);
+    R = Math.min(0.325 * Math.min(W, H), 0.245 * W); CX = W / 2; CY = H / 2;
+    [sky, orb].forEach(function (c) { c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); });
+    buildBackground(); buildStars(); buildPlanet(); buildRings(); renderOrb();
+  }
+
+  function frame(now) {
+    drawSky(now / 1000);
+    requestAnimationFrame(frame);
+  }
+
+  setup();
+  var rt;
+  window.addEventListener('resize', function () {
+    clearTimeout(rt);
+    rt = setTimeout(function () { setup(); }, 120);
+  });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
