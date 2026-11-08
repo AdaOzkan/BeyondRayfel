@@ -3,6 +3,7 @@
     <head>
         <meta charset=utf8>
         <meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+        <link rel="stylesheet" href="KHInterferenceTRIAL-Regular.otf">
         <style>
             :root {
                 color-scheme: light;
@@ -135,17 +136,18 @@
                 position: absolute;
                 inset: 0;
                 display: flex;
+                flex-direction: row;
                 flex-wrap: nowrap;
                 align-items: center;
                 justify-content: center;
-                gap: 0.22em;
+                gap: 0.3em;
                 pointer-events: none;
-                font-family: var(--display);
-                font-weight: 900;
+                font-family: 'KHInterferenceF1-Bold', 'KHInterferenceF1-Regular', var(--display);
+                font-weight: normal;
                 text-transform: uppercase;
-                font-size: min(10.5vw, 46vh);
+                font-size: min(8vw, 32vh);
                 line-height: 0.9;
-                letter-spacing: 0.02em;
+                letter-spacing: 0.04em;
                 color: rgba(236, 227, 208, 0.02);
                 -webkit-text-stroke: 1.5px rgba(236, 227, 208, 0.13);
                 opacity: 0;
@@ -158,9 +160,7 @@
 
             @media (max-width: 699px) {
                 .wordmark {
-                    flex-direction: column;
-                    gap: 0.04em;
-                    font-size: 26vw;
+                    font-size: 15vw;
                 }
             }
 
@@ -355,8 +355,8 @@
 
             .logo img {
                 display: block;
-                width: 125%;
-                height: 125%;
+                width: 100%;
+                height: 100%;
                 object-fit: contain;
             }
 
@@ -676,7 +676,7 @@
                 </div>
                 <div class="school">
                     <h1>Beyond Rayfel</h1>
-                    <p>Ramazan Yaman Science High School · NASA Space Apps 2026</p>
+                    <p>ramazan yaman science high school · NASA Space Apps 2026</p>
                 </div>
             </div>
             <a href="https://www.spaceappschallenge.org/" target="_blank" rel="noopener noreferrer" class="spaceapps-link" title="NASA Space Apps Challenge">
