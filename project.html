@@ -152,7 +152,7 @@ LYR.forEach(([n,v])=>{$("base").add(new Option(n,v));$("over").add(new Option(n,
 /* Yerel TIFF katmanları (HTML ile aynı klasör) */
 const TIFDIR="";
 /* Google Drive: dosyayı "Bağlantıya sahip herkes görüntüleyebilir" yapın ve buraya Google Cloud API anahtarınızı yazın (Drive API etkin, HTTP referrer kısıtlı) */
-const GDKEY="AIzaSyD6MAqdYoBfPv3e0Cq9sBNst-pYvMHaFho";
+const GDKEY="AIzaSyCgXHh0rSewZCQffU-mlcGIMxcGGuoaC0E";
 const tifUrl=f=>f.startsWith("gd:")?(GDKEY?"https://www.googleapis.com/drive/v3/files/"+f.slice(3)+"?alt=media&key="+GDKEY:"https://drive.google.com/uc?export=download&id="+f.slice(3)):TIFDIR+encodeURI(f);
 let gdErr="";
 const loadTif=async(f,opt)=>{gdErr="";
