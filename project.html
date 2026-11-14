@@ -154,6 +154,13 @@ const TIFDIR="";
 /* Google Drive: dosyayı "Bağlantıya sahip herkes görüntüleyebilir" yapın ve buraya Google Cloud API anahtarınızı yazın (Drive API etkin, HTTP referrer kısıtlı) */
 const GDKEY="AIzaSyD6MAqdYoBfPv3e0Cq9sBNst-pYvMHaFho";
 const tifUrl=f=>f.startsWith("gd:")?(GDKEY?"https://www.googleapis.com/drive/v3/files/"+f.slice(3)+"?alt=media&key="+GDKEY:"https://drive.google.com/uc?export=download&id="+f.slice(3)):TIFDIR+encodeURI(f);
+let gdErr="";
+const loadTif=async(f,opt)=>{gdErr="";
+ if(!f.startsWith("gd:"))return addTiff(tifUrl(f),opt);
+ try{const r=await fetch(tifUrl(f));
+  if(!r.ok){let t="";try{t=(await r.text()).replace(/\s+/g," ").slice(0,160)}catch(e){}throw new Error("HTTP "+r.status+" "+t)}
+  const b=await r.blob();return await addTiff(b,opt)}
+ catch(e){console.error(e);gdErr=(e&&e.message)||String(e);return false}};
 const TIFL=[["Thermal","thermal.tif"],["Layer 3","gd:1z_Xlmof_kw9Rk2DZWJFaIVs-Hl3VPWFo"],["Dust","dust.tif"]];
 TIFL.forEach(([n,f])=>$("over").add(new Option(n,"tif:"+f+"|"+n)));
 /* NASA EMC Keşif Bölgeleri (Exploration Zones) – 100 km sınır daireleri.
@@ -177,7 +184,7 @@ function setOver(v){otok++;clearOver();ost("");
  if(v.startsWith("tif:")){const k=v.lastIndexOf("|"),f=v.slice(4,k),nm=v.slice(k+1),tok=otok;
   const pick=()=>{pendingOver={nm,tok};$("tf").click()};
   ost(nm+" yükleniyor…");
-  addTiff(tifUrl(f),{over:true,name:nm,tok}).then(ok=>{if(tok!==otok)return;if(ok)ost(nm+" yüklendi.");else ost(nm+" dosyası Drive'dan okunamadı (API anahtarı GDKEY girilmemiş veya dosya herkese açık değil olabilir). layer3.1.tif dosyasını indirip elle seçebilirsiniz.",pick)});
+  loadTif(f,{over:true,name:nm,tok}).then(ok=>{if(tok!==otok)return;if(ok)ost(nm+" yüklendi.");else ost(nm+" dosyası okunamadı ["+gdErr+"]. Dosyayı indirip elle seçebilirsiniz.",pick)});
   return}
  over=mk(v,{opacity:$("op").value/100}).addTo(map)}
 $("base").onchange=setBase;$("over").onchange=()=>setOver($("over").value);
