@@ -161,7 +161,7 @@ const loadTif=async(f,opt)=>{gdErr="";
   if(!r.ok){let t="";try{t=(await r.text()).replace(/\s+/g," ").slice(0,160)}catch(e){}throw new Error("HTTP "+r.status+" "+t)}
   const b=await r.blob();return await addTiff(b,opt)}
  catch(e){console.error(e);gdErr=(e&&e.message)||String(e);return false}};
-const TIFL=[["Thermal","thermal.tif"],["Layer 3","gd:1z_Xlmof_kw9Rk2DZWJFaIVs-Hl3VPWFo"],["Dust","dust.tif"]];
+const TIFL=[["Thermal","thermal.tif"],["Layer 3","gd:1z_Xlmof_kw9Rk2DZWJFaIVs-Hl3VPWFo"],["Dust","dust.tif"],["Slope","slope.tif"]];
 TIFL.forEach(([n,f])=>$("over").add(new Option(n,"tif:"+f+"|"+n)));
 /* NASA EMC Keşif Bölgeleri (Exploration Zones) – 100 km sınır daireleri.
    Not: XML dosyası yalnızca üst veri içeriyor; merkezler yaklaşık konumlardır.
