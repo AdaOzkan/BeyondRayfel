@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Marswalk HUD – Rota planlayıcı</title>
+<title>Marswalk HUD – Arcadia Planitia</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
 <style>
 :root{--c:#5fe0d0;--w:#ffb347;--b:#ff6b5b;--g:#8be28b;--t:#e9f6f4;--m:#8fb3ae;--p:rgba(8,18,20,.82);--l:rgba(95,224,208,.35)}
@@ -12,6 +12,7 @@ html,body{margin:0;height:100%;background:#000;color:var(--t);font:13px/1.4 "Seg
 .hud{position:absolute;z-index:1000;background:var(--p);border:1px solid var(--l);border-radius:8px;padding:10px 12px;backdrop-filter:blur(3px)}
 h2{font:600 13px Georgia,serif;color:var(--c);margin:0 0 6px}
 #top{top:10px;left:50%;transform:translateX(-50%);width:min(560px,calc(100vw - 20px));text-align:center;padding:6px 10px}
+#lng{position:absolute;top:5px;right:6px;display:flex;gap:3px}#lng button{padding:1px 7px;font-size:11px}
 #hd{font:600 26px Georgia,serif;letter-spacing:1px}
 #hd small{font:12px "Segoe UI",sans-serif;color:var(--m);margin-left:8px}
 canvas#tape{width:100%;height:34px;display:block}
@@ -21,31 +22,23 @@ canvas#tape{width:100%;height:34px;display:block}
 @media(max-width:900px){#left,#right{width:170px;font-size:12px}#top{top:auto;bottom:56px}}
 label{display:block;margin:3px 0}
 select,input[type=text],input[type=number]{width:100%;box-sizing:border-box;background:#0c1d20;color:inherit;border:1px solid var(--l);border-radius:4px;padding:4px}
-input[type=range]{width:100%;accent-color:var(--c)}
-input[type=checkbox]{accent-color:var(--c)}
+input[type=range]{width:100%;accent-color:var(--c)}input[type=checkbox]{accent-color:var(--c)}
 button{background:transparent;color:var(--c);border:1px solid var(--c);border-radius:4px;padding:6px 10px;font-weight:600;cursor:pointer}
 button.on,button:hover{background:var(--c);color:#06191a}
 .row{display:flex;justify-content:space-between;gap:6px}
 .m{color:var(--m)}.ok{color:var(--g)}.bad{color:var(--b)}
-.leg{padding:3px 0;border-top:1px solid var(--l);cursor:pointer}
-.leg:hover,.leg.sel{color:var(--c)}
-small{color:var(--m)}
-a{color:var(--c)}
+.leg{padding:3px 0;border-top:1px solid var(--l);cursor:pointer}.leg:hover,.leg.sel{color:var(--c)}
+small{color:var(--m)}a{color:var(--c)}
 .leaflet-control-attribution{background:rgba(0,0,0,.6)!important;color:#aaa!important;font-size:10px}
 :focus-visible{outline:2px solid var(--c);outline-offset:2px}
-#mp{display:none;position:absolute;inset:0;z-index:2000;background:rgba(3,10,12,.96);overflow:auto;padding:14px}#mp.on{display:block}
-#mp .g{display:grid;grid-template-columns:minmax(300px,1fr) minmax(300px,1fr);gap:14px;max-width:1200px;margin:auto}@media(max-width:800px){#mp .g{grid-template-columns:1fr}}
-#mp ol,#mp ul{margin:4px 0 8px;padding-left:18px}#mp li{margin:3px 0}#mp table{width:100%;border-collapse:collapse}#mp td{padding:3px 0;border-top:1px solid var(--l)}#mp td:last-child{text-align:right;font-weight:600}
-#sim{width:100%;background:#050d0f;border:1px solid var(--l);border-radius:8px}
 details{border-top:1px solid var(--l);padding:4px 0}details:first-of-type{border-top:0}
 summary{cursor:pointer;color:var(--c);font:600 13px Georgia,serif;padding:3px 0}
 .leaflet-tooltip.lbl{background:rgba(6,25,26,.85);border:1px solid var(--l);color:var(--t);font:600 11px "Segoe UI",sans-serif;padding:1px 5px;box-shadow:none}
-.leaflet-tooltip.lbl:before{display:none}
-.nolbl .lbl{display:none}
+.leaflet-tooltip.lbl:before{display:none}.nolbl .lbl{display:none}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid #06191a}
-.site{padding:4px 0;border-top:1px solid var(--l);cursor:pointer}.site:hover b{color:var(--c)}
-.site small{display:block}
+.site{padding:4px 0;border-top:1px solid var(--l);cursor:pointer}.site:hover b{color:var(--c)}.site small{display:block}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--p);color:var(--t);border:1px solid var(--l)}
+.pu{max-height:55vh;overflow:auto;padding-right:4px}.pu ul{margin:4px 0;padding-left:16px}.pu li{margin:2px 0}
 .pu button{margin-top:6px;padding:3px 8px;font-size:12px}
 .dchip{position:relative;width:30px;height:18px;border-radius:9px;background:var(--cc);color:#06191a;font:700 11px/18px "Segoe UI",sans-serif;text-align:center;border:1px solid #06191a;cursor:pointer}
 .dchip:after{content:"";position:absolute;left:50%;top:100%;height:13px;border-left:1px solid var(--cc)}
@@ -55,350 +48,309 @@ summary{cursor:pointer;color:var(--c);font:600 13px Georgia,serif;padding:3px 0}
 <div id="map"></div>
 
 <div class="hud" id="top">
-<canvas id="tape" width="1120" height="68"></canvas>
-<div id="hd">—<small id="hdl">Yön için rota ekleyin</small></div>
+ <div id="lng"><button id="ltr" class="on">TR</button><button id="len">EN</button></div>
+ <canvas id="tape" width="1120" height="68"></canvas>
+ <div id="hd">—<small id="hdl"></small></div>
 </div>
 
 <div class="hud" id="left">
-<details open><summary>Harita katmanları</summary>
-<label class="m">Temel</label>
-<select id="base"></select>
-<label class="m" style="margin-top:8px">Üst katman</label>
-<select id="over"><option value="">Yok</option></select>
-<small id="ots" style="display:none;margin-top:4px"></small>
-<label>Opaklık <input type="range" id="op" min="0" max="100" value="55"></label>
-<label class="m" style="margin-top:8px">Özel katman kimliği</label>
-<input type="text" id="cust" placeholder="Karo URL’si (…/z/y/x.png) veya Trek kimliği">
-<div class="row" style="margin-top:4px"><input type="number" id="cz" value="7" min="1" max="12" style="width:56px" aria-label="Maks yerel zoom"><button id="addc">Ekle</button></div>
-<small id="lerr" style="display:none;color:var(--w)">Bu katmanın karoları gelmiyor; kimlik bu serviste farklı olabilir. Başka katman seçin veya özel kimlik girin.</small>
-<small style="display:block;margin-top:4px">Katmanlar NASA/JPL Mars Trek WMTS servisinden gelir.</small>
-</details>
-<div hidden><input type="file" id="tf" accept=".tif,.tiff,image/tiff"><select id="tRes"><option selected>4096</option></select><input type="range" id="tOp" value="100"><div id="tl"></div><small id="ts"></small></div>
-<details open><summary>Görev katmanları</summary>
-<label><input type="checkbox" id="gSig" checked><span class="sw" style="background:#fff"></span>Sığınaklar ve iniş</label>
-<label><input type="checkbox" id="gBil" checked><span class="sw" style="background:#6fd0ff"></span>Bilim noktaları</label>
-<label><input type="checkbox" id="gHal" checked><span class="sw" style="background:transparent;border-color:#5fe0d0"></span>Menzil halkaları (üsten)</label>
-<label><input type="checkbox" id="gDai" checked><span class="sw" style="background:rgba(255,179,71,.4);border-color:#ffb347"></span>Bölge daireleri</label>
-<label><input type="checkbox" id="gJd" checked><span class="sw" style="background:linear-gradient(90deg,#4cd6ff,#ff4c4c)"></span>D1–D5 daireleri (base merkezli)</label>
-<label><input type="checkbox" id="gLbl" checked> Etiketler</label>
-<label><input type="checkbox" id="grid" checked> Enlem/boylam ızgarası</label>
-<label><input type="checkbox" id="rt" checked> Rota</label>
-</details>
-<details open><summary>Konumlar</summary>
-<div id="sites"></div>
-<small>Satıra tıklayın: haritada o noktaya gider. Yürüyüş hesabı sağdaki hız ve durak süresine göre.</small>
-</details>
+ <details open><summary data-e="Map layers">Harita katmanları</summary>
+  <label class="m" data-e="Base">Temel</label>
+  <select id="base"></select>
+  <label class="m" style="margin-top:8px" data-e="Overlay">Üst katman</label>
+  <select id="over"><option value="" data-tr="Yok" data-en="None">Yok</option></select>
+  <small id="ots" style="display:none;margin-top:4px"></small>
+  <label><span data-e="Opacity">Opaklık</span> <input type="range" id="op" min="0" max="100" value="55"></label>
+  <label class="m" style="margin-top:8px" data-e="Custom layer ID">Özel katman kimliği</label>
+  <input type="text" id="cust" placeholder="Karo URL’si (…/z/y/x.png) veya Trek kimliği" data-ep="Tile URL (…/z/y/x.png) or Trek ID">
+  <div class="row" style="margin-top:4px"><input type="number" id="cz" value="7" min="1" max="12" style="width:56px" aria-label="Max native zoom"><button id="addc" data-e="Add">Ekle</button></div>
+  <small id="lerr" style="display:none;color:var(--w)" data-e="This layer’s tiles are not loading; the ID may differ on this service. Pick another layer or enter a custom ID.">Bu katmanın karoları gelmiyor; kimlik bu serviste farklı olabilir. Başka katman seçin veya özel kimlik girin.</small>
+  <small style="display:block;margin-top:4px" data-e="Layers come from the NASA/JPL Mars Trek WMTS service.">Katmanlar NASA/JPL Mars Trek WMTS servisinden gelir.</small>
+ </details>
+ <div hidden><input type="file" id="tf" accept=".tif,.tiff,image/tiff"><select id="tRes"><option selected>4096</option></select><input type="range" id="tOp" value="100"><div id="tl"></div><small id="ts"></small></div>
+ <details open><summary data-e="Mission layers">Görev katmanları</summary>
+  <label><input type="checkbox" id="gSig" checked><span class="sw" style="background:#fff"></span><span data-e="Shelters & landing">Sığınaklar ve iniş</span></label>
+  <label><input type="checkbox" id="gBil" checked><span class="sw" style="background:#6fd0ff"></span><span data-e="Science points">Bilim noktaları</span></label>
+  <label><input type="checkbox" id="gHal" checked><span class="sw" style="background:transparent;border-color:#5fe0d0"></span><span data-e="Range rings (from base)">Menzil halkaları (üsten)</span></label>
+  <label><input type="checkbox" id="gDai" checked><span class="sw" style="background:rgba(255,179,71,.4);border-color:#ffb347"></span><span data-e="Zone circles">Bölge daireleri</span></label>
+  <label><input type="checkbox" id="gJd" checked><span class="sw" style="background:linear-gradient(90deg,#4cd6ff,#ff4c4c)"></span><span data-e="D1–D10 circles (LZ-centered)">D1–D10 daireleri (LZ merkezli)</span></label>
+  <label><input type="checkbox" id="gLbl" checked> <span data-e="Labels">Etiketler</span></label>
+  <label><input type="checkbox" id="grid" checked> <span data-e="Lat/lon grid">Enlem/boylam ızgarası</span></label>
+  <label><input type="checkbox" id="rt" checked> <span data-e="Route">Rota</span></label>
+ </details>
+ <details open><summary data-e="Locations">Konumlar</summary>
+  <div id="sites"></div>
+  <small data-e="Click a row to fly to that point. Walking figures use the speed and stop time on the right.">Satıra tıklayın: haritada o noktaya gider. Yürüyüş hesabı sağdaki hız ve durak süresine göre.</small>
+ </details>
 </div>
 
 <div class="hud" id="right">
-<h2>Görev bilgisi</h2>
-<div class="row"><span>İmleç</span><span id="cur" class="m">—</span></div>
-<div class="row"><span>Mesafe</span><b id="dist">0 m</b></div>
-<div class="row"><span>Yürüyüş</span><b id="walk">0 dk</b></div>
-<div class="row"><span>Bilim durağı</span><b id="sci">0 dk</b></div>
-<div class="row"><span>O₂ marjı</span><b id="mar">—</b></div>
-<div class="row"><span>Doz (EVA)</span><b id="dose">0 mSv</b></div>
-<div class="row"><span>Acil dönüş</span><b id="ret">—</b></div>
-<label style="margin-top:6px">Hız: <b id="sv">3,0</b> km/sa <input type="range" id="spd" min="1" max="5" step="0.5" value="3"></label>
-<label>Durak süresi (dk) <input type="number" id="stp" value="25" min="0" max="90"></label>
-<label><input type="checkbox" id="spe"> Güneş parçacık olayı (×5 doz)</label>
-<div id="spa" class="bad" style="display:none">Uyarı: EVA’yı kısaltın, sığınağa dönün.</div>
-<label>Rota üzerinde ilerleme <input type="range" id="prog" min="0" max="100" value="0"></label>
-<h2 style="margin-top:10px">Bölümler</h2>
-<small style="display:block;margin-bottom:4px">Taban her zaman ana sığınak. C1–C4 noktalarını kendi çemberleri üzerinde sürükleyin; haritaya tıklayınca çemberler arasına kırılma noktası (◆) eklenir, ◆ tıklayıp silebilirsiniz.</small>
-<div id="legs"><small>Haritaya tıklayarak durak ekleyin. İlk nokta taban (⌂).</small></div>
-<small style="display:block;margin-top:8px">O₂: 8 sa − %30 yedek. Doz: RAD yaklaşık 0,67 mSv/gün. Kaynaklar: <a href="https://api.nasa.gov/" target="_blank" rel="noopener">api.nasa.gov</a>, <a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener">Mars Trek</a>, <a href="https://code.nasa.gov/" target="_blank" rel="noopener">code.nasa.gov</a>, <a href="https://www.nasa.gov/learning-resources/" target="_blank" rel="noopener">NASA Learning</a>, <a href="https://www.nasa.gov/resources/" target="_blank" rel="noopener">NASA Resources</a>.</small>
+ <h2 data-e="Mission info">Görev bilgisi</h2>
+ <div class="row"><span data-e="Cursor">İmleç</span><span id="cur" class="m">—</span></div>
+ <div class="row"><span data-e="Distance">Mesafe</span><b id="dist">0 m</b></div>
+ <div class="row"><span data-e="Walking">Yürüyüş</span><b id="walk">0</b></div>
+ <div class="row"><span data-e="Science stop">Bilim durağı</span><b id="sci">0</b></div>
+ <div class="row"><span data-e="O₂ margin">O₂ marjı</span><b id="mar">—</b></div>
+ <div class="row"><span data-e="Dose (EVA)">Doz (EVA)</span><b id="dose">0 mSv</b></div>
+ <div class="row"><span data-e="Emergency return">Acil dönüş</span><b id="ret">—</b></div>
+ <label style="margin-top:6px"><span data-e="Speed:">Hız:</span> <b id="sv">3,0</b> <span data-e="km/h">km/sa</span> <input type="range" id="spd" min="1" max="5" step="0.5" value="3"></label>
+ <label><span data-e="Stop duration (min)">Durak süresi (dk)</span> <input type="number" id="stp" value="25" min="0" max="90"></label>
+ <label><input type="checkbox" id="spe"> <span data-e="Solar particle event (×5 dose)">Güneş parçacık olayı (×5 doz)</span></label>
+ <div id="spa" class="bad" style="display:none" data-e="Warning: shorten the EVA, return to the shelter.">Uyarı: EVA’yı kısaltın, sığınağa dönün.</div>
+ <label><span data-e="Progress along route">Rota üzerinde ilerleme</span> <input type="range" id="prog" min="0" max="100" value="0"></label>
+ <label><span data-e="Route circles (1–10)">Rota çember sayısı (1–10)</span> <input type="number" id="nr" value="5" min="1" max="10"></label>
+ <h2 style="margin-top:10px" data-e="Legs">Bölümler</h2>
+ <small style="display:block;margin-bottom:4px" data-e="The start is always the main shelter. Drag the C points along their own circles; clicking the map adds a breakpoint (◆) between circles, and you can click a ◆ to delete it.">Taban her zaman ana sığınak. C noktalarını kendi çemberleri üzerinde sürükleyin; haritaya tıklayınca çemberler arasına kırılma noktası (◆) eklenir, ◆ tıklayıp silebilirsiniz.</small>
+ <div id="legs"></div>
+ <small id="rnote" style="display:block;margin-top:8px"></small>
+ <small style="display:block;margin-top:8px"><span data-e="O₂: 8 h − 30% reserve. Dose: RAD ≈ 0.67 mSv/day. Sources:">O₂: 8 sa − %30 yedek. Doz: RAD yaklaşık 0,67 mSv/gün. Kaynaklar:</span> <a href="https://api.nasa.gov/" target="_blank" rel="noopener">api.nasa.gov</a>, <a href="https://trek.nasa.gov/mars/" target="_blank" rel="noopener">Mars Trek</a>, <a href="https://code.nasa.gov/" target="_blank" rel="noopener">code.nasa.gov</a>, <a href="https://www.nasa.gov/learning-resources/" target="_blank" rel="noopener">NASA Learning</a>, <a href="https://www.nasa.gov/resources/" target="_blank" rel="noopener">NASA Resources</a>.</small>
 </div>
 
 <div class="hud" id="bot">
-<button id="add" class="on">Kırılma noktası ekle</button>
-<button id="undo">Geri al</button>
-<button id="loop">Tabana dön</button>
-<button id="clr">Rotayı sıfırla</button>
-<button id="exp">JSON indir</button>
-<button id="mis" class="on">Görev planı</button><button id="demoI">Buz EVA</button><button id="ctr2">Sığınak bölgesi</button><button id="ctr">Jezero’ya git</button>
+ <button id="add" class="on" data-e="Add breakpoint">Kırılma noktası ekle</button>
+ <button id="undo" data-e="Undo">Geri al</button>
+ <button id="loop" data-e="Return to base">Tabana dön</button>
+ <button id="clr" data-e="Reset route">Rotayı sıfırla</button>
+ <button id="exp" data-e="Download JSON">JSON indir</button>
+ <button id="demoI" data-e="Ice EVA">Buz EVA</button>
+ <button id="ctr2" data-e="Shelter area">Sığınak bölgesi</button>
 </div>
 
-<div id="mp"><div class="g"><div>
-<h2>Görev planı: Dünya → Jezero → Dünya</h2>
-<label>Profil <select id="pf"><option value="a">Düşük enerji, uzun kalış (259 gün geçiş)</option><option value="b">Hızlı geçiş (~180 gün)</option><option value="c">Kısa kalış (30 gün, Venüs geçişli, ~600 gün)</option></select></label>
-<label>Karşıtlık (Mars Dünya’ya en yakın) <select id="op2"></select></label>
-<canvas id="sim" width="560" height="560"></canvas>
-<label>Görev günü: <b id="dd">0</b> · <span id="dt"></span> <input type="range" id="ds" min="0" max="1000" value="0"></label>
-<div id="ph" class="m"></div>
-<table id="tb"></table>
-<small>Basit dairesel yörünge modeli; gerçek tarihler ±birkaç hafta kayabilir. Kesin değer için JPL Horizons ile doğrulayın.</small>
-<button id="cls" style="margin-top:8px">Haritaya dön</button></div>
-<div id="ex"><h2>Plan maddeleri</h2><ol>
-<li><b>Kalkış:</b> Kennedy Uzay Merkezi LC‑39A (28,6°K). Doğuya fırlatma Dünya dönüşünden hız kazandırır; LEO’da toplanıp Mars’a enjeksiyon yakışı yapılır. Tarih, karşıtlıktan ~95 gün önce seçilir (Mars Dünya’nın ~44° önündeyken). Hava/bulut için NASA Worldview kullanılır.</li>
-<li><b>Varış süresi:</b> sağ üstteki tablo; düşük enerjide ~259 gün (~8,5 ay), hızlıda ~180 gün.</li>
-<li><b>İniş yeri:</b> Jezero Krateri (18,44°K 77,45°D). Eski nehir deltası + karbonatlar = biyoimza arayışı; Perseverance verisi, örnek tüpleri ve Mars Trek/HiRISE kapsamı çok iyi.</li>
-<li><b>Dönüş:</b> tablodaki dönüş kalkışı; uzun kalışta ~15 ay yüzeyde beklenir, çünkü gezegen hizalanması gerekir.</li>
-<li><b>Yaşam yeri (Jezero tabanı):</b><br>(+) 18°K: güneş enerjisi ve ılımlı sıcaklık; −2,6 km kot: daha yoğun atmosfer, aerofren/iniş avantajı; düz taban, kanıtlanmış iniş; delta yakın.<br>(−) Yüzeyde bilinen buz yok (su için hidrate mineral/regolit veya dış kaynak); toz fırtınası; kaya/kum kümeleri ve Séítah engebesi; Dünya’dan haberleşme gecikmesi 4–24 dk.</li>
-<li><b>Araştırma:</b> delta tortul katmanları, karbonat/killer, örnek deposu, geçmiş yaşam izi, iklim tarihi, MOXIE tipi O₂ üretimi, toz ve radyasyon ölçümü.</li>
-<li><b>Hayatta kalma:</b> ısıtmalı/basınçlı hab + basınçlı gezgin; O₂ (~0,84 kg/kişi/gün), su geri dönüşümü, gıda, güç (güneş+nükleer), radyasyon sığınağı, EVA sınırı (haritadaki O₂ marjı), yedek yaşam desteği, acil dönüş süresi göstergesi.</li>
-<li><b>Challenge uyumu:</b> ≥3 veri katmanı (Viking optik, MOLA topografya, enlem/boylam), rota ve engelden kaçınma, radyasyon/güneş parçacığı uyarısı, kask HUD pusulası, ayak/gezgin hızına göre O₂ ve doz hesabı. Kullanılan: Mars Trek, USGS haritaları, Curiosity Mount Sharp rotası (alternatif saha), Mars 2020 ham görüntüleri (varış görünümü), Worldview (kalkış/dönüş hava durumu).</li></ol></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js"></script>
 <script>
 const $=id=>document.getElementById(id);
+let LG="tr";const T=(a,b)=>LG=="tr"?a:b,ix=()=>LG=="tr"?0:1,nf=s=>LG=="tr"?String(s).replace(".",","):String(s);
 const URLB="https://trek.nasa.gov/tiles/Mars/EQ/",R=3389.5e3,rad=d=>d*Math.PI/180,deg=r=>r*180/Math.PI;
-const map=L.map("map",{crs:L.CRS.EPSG4326,center:[18.45,77.42],zoom:8,minZoom:1,maxZoom:12,zoomControl:false});
+const map=L.map("map",{crs:L.CRS.EPSG4326,center:[46.6,-173],zoom:9,minZoom:1,maxZoom:12,zoomControl:false});
 L.control.zoom({position:"bottomright"}).addTo(map);
 map.attributionControl.addAttribution("NASA/JPL Mars Trek");
 function mk(v,o){const k=v.lastIndexOf("|"),id=v.slice(0,k),z=v.slice(k+1),t=L.tileLayer(/^https?:/.test(id)?id:URLB+id+"/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",Object.assign({tileSize:256,maxNativeZoom:+z,noWrap:true},o));let n=0;$("lerr").style.display="none";t.on("tileerror",()=>{if(++n==8)$("lerr").style.display="block"});return t}
-const LYR=[["Viking renkli mozaik (232 m)","Mars_Viking_MDIM21_ClrMosaic_global_232m|7"],["MOLA renkli topografya (463 m)","Mars_MGS_MOLA_ClrShade_merge_global_463m|6"],["THEMIS IR gündüz (100 m)","Mars_MO_THEMIS-IR-Day_mosaic_global_100m_v12|8"],["THEMIS IR gece (100 m)","Mars_MO_THEMIS-IR-Night_mosaic_global_100m_v14|8"]];
-LYR.forEach(([n,v])=>{$("base").add(new Option(n,v));$("over").add(new Option(n,v))});
-/* Yerel TIFF katmanları (HTML ile aynı klasör) */
+/* Temel: yalnızca Viking ve MOLA. Üst katmanlar değişmedi. */
+const LYR=[["Viking renkli mozaik (232 m)","Viking color mosaic (232 m)","Mars_Viking_MDIM21_ClrMosaic_global_232m|7"],["MOLA renkli topografya (463 m)","MOLA color topography (463 m)","Mars_MGS_MOLA_ClrShade_merge_global_463m|6"],["THEMIS IR gündüz (100 m)","THEMIS IR day (100 m)","Mars_MO_THEMIS-IR-Day_mosaic_global_100m_v12|8"],["THEMIS IR gece (100 m)","THEMIS IR night (100 m)","Mars_MO_THEMIS-IR-Night_mosaic_global_100m_v14|8"]];
+const opt=(s,a,b,v)=>{const o=new Option(a,v);o.dataset.tr=a;o.dataset.en=b;s.add(o)};
+LYR.forEach(([a,b,v],i)=>{if(i<2)opt($("base"),a,b,v);opt($("over"),a,b,v)});
 const TIFDIR="";
-/* Google Drive: dosyayı "Bağlantıya sahip herkes görüntüleyebilir" yapın ve buraya Google Cloud API anahtarınızı yazın (Drive API etkin, HTTP referrer kısıtlı) */
 const GDKEY="AIzaSyCgXHh0rSewZCQffU-mlcGIMxcGGuoaC0E";
 const tifUrl=f=>f.startsWith("gd:")?(GDKEY?"https://www.googleapis.com/drive/v3/files/"+f.slice(3)+"?alt=media&key="+GDKEY:"https://drive.google.com/uc?export=download&id="+f.slice(3)):TIFDIR+encodeURI(f);
 let gdErr="";
-const loadTif=async(f,opt)=>{gdErr="";
- if(!f.startsWith("gd:"))return addTiff(tifUrl(f),opt);
- try{const r=await fetch(tifUrl(f));
-  if(!r.ok){let t="";try{t=(await r.text()).replace(/\s+/g," ").slice(0,160)}catch(e){}throw new Error("HTTP "+r.status+" "+t)}
-  const b=await r.blob();return await addTiff(b,opt)}
- catch(e){console.error(e);gdErr=(e&&e.message)||String(e);return false}};
-const TIFL=[["Thermal","thermal.tif"],["Layer 3","gd:1z_Xlmof_kw9Rk2DZWJFaIVs-Hl3VPWFo"],["Dust","dust.tif"],["Slope","slope.tif"]];
-TIFL.forEach(([n,f])=>$("over").add(new Option(n,"tif:"+f+"|"+n)));
-/* NASA EMC Keşif Bölgeleri (Exploration Zones) – 100 km sınır daireleri.
-   Not: XML dosyası yalnızca üst veri içeriyor; merkezler yaklaşık konumlardır.
-   Gerçek sınırlar için Mars Trek'ten GeoJSON alıp EZ listesini değiştirin. */
-$("over").add(new Option("Keşif Bölgeleri – NASA EMC (100 km daireler)","ez|EMC"));
+const loadTif=async(f,o)=>{gdErr="";if(!f.startsWith("gd:"))return addTiff(tifUrl(f),o);try{const r=await fetch(tifUrl(f));if(!r.ok){let t="";try{t=(await r.text()).replace(/\s+/g," ").slice(0,160)}catch(e){}throw new Error("HTTP "+r.status+" "+t)}const b=await r.blob();return await addTiff(b,o)}catch(e){console.error(e);gdErr=(e&&e.message)||String(e);return false}};
+[["Thermal","thermal.tif"],["Layer 3","gd:1z_Xlmof_kw9Rk2DZWJFaIVs-Hl3VPWFo"],["Dust","dust.tif"],["Slope","slope.tif"]].forEach(([n,f])=>opt($("over"),n,n,"tif:"+f+"|"+n));
+opt($("over"),"Keşif Bölgeleri – NASA EMC (100 km daireler)","Exploration Zones – NASA EMC (100 km circles)","ez|EMC");
 const EZ=[["Jezero",18.44,77.45],["Gale",-5.4,137.8],["Mawrth Vallis",24.0,-19.0],["Oxia Planum",18.2,-24.6],["Eberswalde",-24.0,-33.7],["Melas Chasma",-9.8,-76.4],["Arcadia Planitia",46.56,-173.0]];
-function ezLayer(){const g=L.layerGroup();
- EZ.forEach(([n,la,lo])=>g.addLayer(L.polygon(circ([la,lo],100),{color:"#ffb347",weight:2,fillColor:"#ffb347",fillOpacity:.12}).bindTooltip(n+" (100 km)",{permanent:true,direction:"center",className:"lbl"})));
- g.setOpacity=o=>g.eachLayer(l=>l.setStyle({opacity:o,fillOpacity:o*.2}));return g}
+function ezLayer(){const g=L.layerGroup();EZ.forEach(([n,la,lo])=>g.addLayer(L.polygon(circ([la,lo],100),{color:"#ffb347",weight:2,fillColor:"#ffb347",fillOpacity:.12}).bindTooltip(n+" (100 km)",{permanent:true,direction:"center",className:"lbl"})));g.setOpacity=o=>g.eachLayer(l=>l.setStyle({opacity:o,fillOpacity:o*.2}));return g}
 let base,over,grid=L.layerGroup().addTo(map);
 function setBase(){base&&map.removeLayer(base);base=mk($("base").value).addTo(map);base.bringToBack()}
 let otok=0,pendingOver=null;
 function clearOver(){if(over){map.removeLayer(over);over._url&&URL.revokeObjectURL(over._url)}over=null}
-function ost(t,btn){const e=$("ots");e.style.display=t?"block":"none";e.textContent=t||"";if(btn){const b=document.createElement("button");b.textContent="Dosyayı seç";b.style.marginLeft="6px";b.onclick=btn;e.appendChild(b)}}
-function setOver(v){otok++;clearOver();ost("");
- if(!v)return;
- if(v.startsWith("ez|")){over=ezLayer().addTo(map);over.setOpacity($("op").value/100);
-  ost("Keşif Bölgeleri (NASA EMC): 2015 çalıştayında önerilen 40+ bölge, 100 km sınır dairesiyle. Konumlar yaklaşık; XML yalnızca üst veri içeriyor.");
-  map.setView([15,0],2);return}
- if(v.startsWith("tif:")){const k=v.lastIndexOf("|"),f=v.slice(4,k),nm=v.slice(k+1),tok=otok;
-  const pick=()=>{pendingOver={nm,tok};$("tf").click()};
-  ost(nm+" yükleniyor…");
-  loadTif(f,{over:true,name:nm,tok}).then(ok=>{if(tok!==otok)return;if(ok)ost(nm+" yüklendi.");else ost(nm+" dosyası okunamadı ["+gdErr+"]. Dosyayı indirip elle seçebilirsiniz.",pick)});
-  return}
+function ost(t,btn){const e=$("ots");e.style.display=t?"block":"none";e.textContent=t||"";if(btn){const b=document.createElement("button");b.textContent=T("Dosyayı seç","Choose file");b.style.marginLeft="6px";b.onclick=btn;e.appendChild(b)}}
+function setOver(v){otok++;clearOver();ost("");if(!v)return;
+ if(v.startsWith("ez|")){over=ezLayer().addTo(map);over.setOpacity($("op").value/100);ost(T("Keşif Bölgeleri (NASA EMC): 2015 çalıştayında önerilen 40+ bölge, 100 km sınır dairesiyle. Konumlar yaklaşık; XML yalnızca üst veri içeriyor.","Exploration Zones (NASA EMC): 40+ zones proposed at the 2015 workshop, with 100 km boundary circles. Positions are approximate; the XML holds metadata only."));map.setView([15,0],2);return}
+ if(v.startsWith("tif:")){const k=v.lastIndexOf("|"),f=v.slice(4,k),nm=v.slice(k+1),tok=otok;const pick=()=>{pendingOver={nm,tok};$("tf").click()};ost(nm+T(" yükleniyor…"," loading…"));
+  loadTif(f,{over:true,name:nm,tok}).then(ok=>{if(tok!==otok)return;if(ok)ost(nm+T(" yüklendi."," loaded."));else ost(nm+T(" dosyası okunamadı ["," could not be read [")+gdErr+T("]. Dosyayı indirip elle seçebilirsiniz.","]. You can download the file and choose it manually."),pick)});return}
  over=mk(v,{opacity:$("op").value/100}).addTo(map)}
 $("base").onchange=setBase;$("over").onchange=()=>setOver($("over").value);
 $("op").oninput=()=>over&&over.setOpacity($("op").value/100);
 $("addc").onclick=()=>{let i=$("cust").value.trim();if(!i)return;let nm=i;const m=i.match(/^(https?:\/\/.*?)\/(\d+)\/(\d+)\/(\d+)\.(png|jpe?g)(\?.*)?$/i);
-if(m){i=m[1]+"/{z}/{y}/{x}."+m[5];const p=m[1].split("/");nm=p[p.length-4]||"Özel katman"}
-const v=i+"|"+$("cz").value;[$("base"),$("over")].forEach(x=>x.add(new Option("Özel: "+nm,v)));$("over").value=v;setOver(v)};
+ if(m){i=m[1]+"/{z}/{y}/{x}."+m[5];const p=m[1].split("/");nm=p[p.length-4]||"Custom"}
+ const v=i+"|"+$("cz").value;opt($("over"),"Özel: "+nm,"Custom: "+nm,v);$("over").value=v;setOver(v)};
 function drawGrid(){grid.clearLayers();if(!$("grid").checked)return;const b=map.getBounds(),z=map.getZoom(),st=z>=10?.01:z>=8?.05:z>=6?.5:5;
-for(let la=Math.ceil(b.getSouth()/st)*st;la<=b.getNorth();la+=st)grid.addLayer(L.polyline([[la,b.getWest()],[la,b.getEast()]],{color:"#5fe0d0",weight:.6,opacity:.45,interactive:false}));
-for(let lo=Math.ceil(b.getWest()/st)*st;lo<=b.getEast();lo+=st)grid.addLayer(L.polyline([[b.getSouth(),lo],[b.getNorth(),lo]],{color:"#5fe0d0",weight:.6,opacity:.45,interactive:false}))}
+ for(let la=Math.ceil(b.getSouth()/st)*st;la<=b.getNorth();la+=st)grid.addLayer(L.polyline([[la,b.getWest()],[la,b.getEast()]],{color:"#5fe0d0",weight:.6,opacity:.45,interactive:false}));
+ for(let lo=Math.ceil(b.getWest()/st)*st;lo<=b.getEast();lo+=st)grid.addLayer(L.polyline([[b.getSouth(),lo],[b.getNorth(),lo]],{color:"#5fe0d0",weight:.6,opacity:.45,interactive:false}))}
 $("grid").onchange=drawGrid;map.on("moveend",drawGrid);
 $("rt").onchange=()=>$("rt").checked?line.addTo(map):map.removeLayer(line);
 setBase();drawGrid();
-
 const hav=(a,b)=>{const x=Math.sin(rad(b[0]-a[0])/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(rad(b[1]-a[1])/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
 const brg=(a,b)=>{const f1=rad(a[0]),f2=rad(b[0]),dl=rad(b[1]-a[1]);return(deg(Math.atan2(Math.sin(dl)*Math.cos(f2),Math.cos(f1)*Math.sin(f2)-Math.sin(f1)*Math.cos(f2)*Math.cos(dl)))+360)%360};
-const card=h=>["K","KKD","KD","DKD","D","DGD","GD","GGD","G","GGB","GB","BGB","B","BKB","KB","KKB"][Math.round(h/22.5)%16];
-let wp=[],mk_=[],line=L.polyline([],{color:"#5fe0d0",weight:3,dashArray:"7 6"}).addTo(map),me=L.circleMarker([0,0],{radius:7,color:"#fff",weight:2,fillColor:"#ff6b5b",fillOpacity:1}),sel=-1,addMode=true;
-const ic=t=>L.divIcon({className:"",html:`<div style="width:22px;height:22px;border-radius:50%;background:${t=="⌂"?"#fff":"#ffb347"};color:#06191a;font:700 11px sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #06191a">${t}</div>`,iconSize:[22,22],iconAnchor:[11,11]});
-/* ===== Rota: taban = ana sığınak (sabit); C1…Cn çember noktaları (kendi çemberi üzerinde sürüklenir); tıklayınca kırılma noktası ===== */
+const C16={tr:["K","KKD","KD","DKD","D","DGD","GD","GGD","G","GGB","GB","BGB","B","BKB","KB","KKB"],en:["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"]};
+const card=h=>C16[LG][Math.round(h/22.5)%16];
+let wp=[],line=L.polyline([],{color:"#5fe0d0",weight:3,dashArray:"7 6"}).addTo(map),me=L.circleMarker([0,0],{radius:7,color:"#fff",weight:2,fillColor:"#ff6b5b",fillOpacity:1}),sel=-1,addMode=true;
+/* ===== Rota: taban = ana sığınak; C1…Cn çember noktaları (kendi çemberi üzerinde); tıklayınca kırılma noktası ===== */
 let RT=[],hist=[];
 const ric=(t,c)=>L.divIcon({className:"",html:`<div style="width:24px;height:24px;border-radius:50%;background:${c};color:#06191a;font:700 10px sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 0 0 1px #06191a">${t}</div>`,iconSize:[24,24],iconAnchor:[12,12]});
 const bic=()=>L.divIcon({className:"",html:`<div style="width:14px;height:14px;transform:rotate(45deg);background:#fff;border:2px solid #06191a;box-sizing:border-box"></div>`,iconSize:[14,14],iconAnchor:[7,7]});
 const d2s=(p,a,b)=>{const k=Math.cos(rad(p[0])),X=q=>[(q[1]-p[1])*k,q[0]-p[0]],A=X(a),B=X(b),dx=B[0]-A[0],dy=B[1]-A[1],l=dx*dx+dy*dy,t=l?Math.max(0,Math.min(1,-(A[0]*dx+A[1]*dy)/l)):0;return Math.hypot(A[0]+t*dx,A[1]+t*dy)};
-function rlabel(){let n=0;RT.forEach(x=>{x.lb=x.t=="base"||x.t=="ret"?"⌂":x.t=="ring"?"C"+x.k:x.t=="end"?JC.endId:"B"+(++n)})}
+function rlabel(){let n=0;RT.forEach(x=>{x.lb=x.t=="base"||x.t=="ret"?"⌂":x.t=="ring"?"C"+x.k:x.t=="end"?"D"+x.k:"B"+(++n)})}
 function sync(){rlabel();wp=RT.map(x=>x.ll);upd()}
 function rmItem(it){const i=RT.indexOf(it);if(i<0)return;it.m&&map.removeLayer(it.m);RT.splice(i,1);sel=-1;sync()}
 function mkItem(t,ll,k){const it={t,ll,k,r:0};
- if(t=="base")it.r=hav(JC.c,ll);else if(t=="ring")it.r=JC.R[k-1];else if(t=="end")it.r=JC.R[JC.R.length-1];
+ if(t=="base")it.r=hav(JC.c,ll);else if(t=="ring")it.r=JC.R[k-1];else if(t=="end")it.r=JC.R[k-1];
  if(t=="ring"||t=="bend"){
   const m=L.marker(ll,{icon:t=="ring"?ric("C"+k,JC.col[k-1]):bic(),draggable:true,zIndexOffset:700}).addTo(map);
   m.on("drag",()=>{let q=[m.getLatLng().lat,m.getLatLng().lng];if(t=="ring"){q=dest(JC.c,JC.R[k-1],brg(JC.c,q));m.setLatLng(q)}it.ll=q;sync()});
   m.on("dragend",()=>{it.ll=[m.getLatLng().lat,m.getLatLng().lng];sync()});
-  if(t=="ring")m.bindTooltip("C"+k+" · "+JC.ids[k-1]+" çemberi üzerinde sürükleyin",{direction:"top",offset:[0,-12],className:"lbl"});
-  else m.bindPopup(()=>{const e=document.createElement("div");e.className="pu";e.innerHTML="<b>Kırılma noktası</b><br><small>Sürükleyerek serbestçe taşıyın.</small><br>";const b=document.createElement("button");b.textContent="Sil";b.onclick=()=>{map.closePopup();rmItem(it)};e.appendChild(b);return e});
+  if(t=="ring"){m.bindTooltip(()=>"C"+k+" · "+JC.ids[k-1]+T(" çemberi üzerinde sürükleyin"," circle — drag along it"),{direction:"top",offset:[0,-12],className:"lbl"});m.bindPopup(()=>dpop(JD[k-1],it.ll),{minWidth:220,maxWidth:320})}
+  else m.bindPopup(()=>{const e=document.createElement("div");e.className="pu";e.innerHTML="<b>"+T("Kırılma noktası","Breakpoint")+"</b><br><small>"+T("Sürükleyerek serbestçe taşıyın.","Drag to move it freely.")+"</small><br>";const b=document.createElement("button");b.textContent=T("Sil","Delete");b.onclick=()=>{map.closePopup();rmItem(it)};e.appendChild(b);return e});
   it.m=m}
  return it}
-function resetRoute(){RT.forEach(x=>x.m&&map.removeLayer(x.m));RT=[];hist=[];sel=-1;
- RT.push(mkItem("base",BASE.slice()));
- JC.def.forEach((q,i)=>RT.push(mkItem("ring",q.slice(),i+1)));
- RT.push(mkItem("end",JC.end.slice()));sync()}
+function resetRoute(n){n=Math.max(1,Math.min(NJ,n||+$("nr").value||5));$("nr").value=n;RT.forEach(x=>x.m&&map.removeLayer(x.m));RT=[];hist=[];sel=-1;
+ RT.push(mkItem("base",BASE.slice()));JC.def.slice(0,n-1).forEach((q,i)=>RT.push(mkItem("ring",q.slice(),i+1)));RT.push(mkItem("end",JD[n-1].ll.slice(),n));sync()}
 // tıklanan nokta: uzaklığına göre hangi iki çember arasına düşüyorsa oraya, o aralıkta en yakın parçaya eklenir
-function addWp(ll){if(!JC||!RT.length)return;const r=hav(JC.c,ll);let lo=0;
- RT.forEach((x,i)=>{if(x.t!="bend"&&x.t!="ret"&&x.r<=r)lo=i});
+function addWp(ll){if(!JC||!RT.length)return;const r=hav(JC.c,ll);let lo=0;RT.forEach((x,i)=>{if(x.t!="bend"&&x.t!="ret"&&x.r<=r)lo=i});
  let hi=RT.length;for(let i=lo+1;i<RT.length;i++)if(RT[i].t!="bend"){hi=i;break}
- let bi=hi,bd=1e18;
- for(let i=lo+1;i<=hi;i++){const a=RT[i-1].ll,b=(RT[i]||RT[i-1]).ll,d=d2s(ll,a,b);if(d<bd){bd=d;bi=i}}
+ let bi=hi,bd=1e18;for(let i=lo+1;i<=hi;i++){const a=RT[i-1].ll,b=(RT[i]||RT[i-1]).ll,d=d2s(ll,a,b);if(d<bd){bd=d;bi=i}}
  const it=mkItem("bend",ll);RT.splice(bi,0,it);hist.push(it);sync()}
 map.on("click",e=>{if(addMode)addWp([e.latlng.lat,e.latlng.lng])});
 map.on("mousemove",e=>$("cur").textContent=fmtLL([e.latlng.lat,e.latlng.lng]));
 $("add").onclick=()=>{addMode=!addMode;$("add").classList.toggle("on",addMode)};
 $("undo").onclick=()=>{while(hist.length){const it=hist.pop();if(RT.includes(it)){rmItem(it);return}}};
 $("clr").onclick=()=>resetRoute();
+$("nr").onchange=()=>resetRoute();
 $("loop").onclick=()=>{if(!RT.length||RT[RT.length-1].t=="ret")return;const it={t:"ret",ll:BASE.slice()};RT.push(it);hist.push(it);sync()};
-$("ctr").onclick=()=>map.setView([18.45,77.42],8);
 $("exp").onclick=()=>{const j={landing_zone:{lat:JB[0],lon:JB[1]},waypoints:RT.map(x=>({id:x.t=="base"?"base":x.t=="ret"?"base_return":x.lb,type:x.t,lat:+x.ll[0].toFixed(5),lon:+x.ll[1].toFixed(5)})),distance_m:Math.round(tot),source:"NASA/JPL Mars Trek"};
-const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(j,null,2)],{type:"application/json"}));a.download="marswalk-rota.json";a.click()};
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(j,null,2)],{type:"application/json"}));a.download="marswalk-rota.json";a.click()};
 ["spd","stp","spe","prog"].forEach(i=>$(i).oninput=upd);
 let tot=0,cum=[];
 function tape(h){const c=$("tape"),x=c.getContext("2d"),w=c.width,ht=c.height;x.clearRect(0,0,w,ht);x.fillStyle="#5fe0d0";x.strokeStyle="#5fe0d0";x.font="bold 20px sans-serif";x.textAlign="center";const pd=w/120;
-for(let d=Math.floor(h-60);d<=h+60;d++){const a=((d%360)+360)%360,px=w/2+(d-h)*pd;if(d%10==0){x.lineWidth=2;x.beginPath();x.moveTo(px,ht-4);x.lineTo(px,ht-(a%30==0?26:16));x.stroke();
-if(a%30==0){const L_={0:"K",90:"D",180:"G",270:"B"}[a];x.fillText(L_||a,px,16)}}}
-x.fillStyle="#ffb347";x.beginPath();x.moveTo(w/2,ht-2);x.lineTo(w/2-8,ht-14);x.lineTo(w/2+8,ht-14);x.fill()}
+ for(let d=Math.floor(h-60);d<=h+60;d++){const a=((d%360)+360)%360,px=w/2+(d-h)*pd;if(d%10==0){x.lineWidth=2;x.beginPath();x.moveTo(px,ht-4);x.lineTo(px,ht-(a%30==0?26:16));x.stroke();
+  if(a%30==0){const L_={0:T("K","N"),90:T("D","E"),180:T("G","S"),270:T("B","W")}[a];x.fillText(L_||a,px,16)}}}
+ x.fillStyle="#ffb347";x.beginPath();x.moveTo(w/2,ht-2);x.lineTo(w/2-8,ht-14);x.lineTo(w/2+8,ht-14);x.fill()}
 function at(f){const d=f*tot;for(let i=1;i<cum.length;i++)if(d<=cum[i]){const t=(d-cum[i-1])/((cum[i]-cum[i-1])||1),a=wp[i-1],b=wp[i];return{ll:[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],seg:i-1,d}}return null}
 function upd(){line.setLatLngs(wp);cum=[0];for(let i=1;i<wp.length;i++)cum.push(cum[i-1]+hav(wp[i-1],wp[i]));tot=cum[cum.length-1]||0;
-const sp=+$("spd").value;$("sv").textContent=sp.toFixed(1).replace(".",",");
-const walk=tot/(sp*1000/3600),sci=RT.filter(x=>x.t=="end").length*$("stp").value*60,total=walk+sci,use=8*3600*.7,mar=use-total;
-const spe=$("spe").checked;$("spa").style.display=spe?"block":"none";
-$("dist").textContent=Math.round(tot)+" m";$("walk").textContent=Math.round(walk/60)+" dk";$("sci").textContent=Math.round(sci/60)+" dk";
-$("mar").innerHTML=wp.length>1?`<span class="${mar>=0?"ok":"bad"}">${Math.round(mar/60)} dk ${mar>=0?"✓":"✗"}</span>`:"—";
-$("dose").textContent=(.67/24*(spe?5:1)*total/3600).toFixed(2)+" mSv";
-let legs="";for(let i=1;i<wp.length;i++){const b=brg(wp[i-1],wp[i]);legs+=`<div class="leg${i-1==sel?" sel":""}" data-i="${i-1}"><div class="row"><span>${RT[i-1].lb} → ${RT[i].lb}</span><b>${Math.round(b)}° ${card(b)}</b></div><small>${Math.round(cum[i]-cum[i-1])} m · ${Math.round((cum[i]-cum[i-1])/(sp*1000/3600)/60)} dk</small></div>`}
-if(legs)$("legs").innerHTML=legs;else $("legs").innerHTML="<small>Haritaya tıklayarak durak ekleyin. İlk nokta taban (⌂).</small>";
-document.querySelectorAll(".leg").forEach(e=>e.onclick=()=>{sel=+e.dataset.i;upd()});
-let h=null,txt="";const p=at(+$("prog").value/100);
-if(wp.length>1&&p){me.addTo(map).setLatLng(p.ll);const s=sel>=0?sel:p.seg;h=brg(wp[s],wp[s+1]);txt=sel>=0?"Seçili bölüm":"İlerleme noktasındaki yön";
-$("ret").textContent=Math.round(hav(p.ll,wp[0])/(sp*1000/3600)/60)+" dk"}else{map.removeLayer(me);$("ret").textContent="—"}
-if(h==null&&sel>=0&&wp.length>1){h=brg(wp[sel],wp[sel+1])}
-$("hd").firstChild.textContent=h==null?"—":Math.round(h)+"° "+card(h);$("hdl").textContent=h==null?"Yön için rota ekleyin":txt;tape(h==null?0:h)}
-upd();
-
-const OPP=["2029-03-25","2031-05-04","2033-06-27","2035-09-15","2037-11-19"],PF={a:{T:259,al:180},b:{T:180,al:125},c:{T:200,R:370,S:30}},wE=.9856474,wM=.5240208,DAY=864e5,fmt=t=>new Date(t).toLocaleDateString("tr-TR",{day:"numeric",month:"long",year:"numeric"});
-OPP.forEach((o,i)=>$("op2").add(new Option(fmt(Date.parse(o)),o,0,i==3)));
-function odist(t){const d=(t-Date.UTC(2000,0,1,12))/DAY,M=rad(357.529+.9856*d),lE=(280.46+.9856474*d+1.915*Math.sin(M)+.02*Math.sin(2*M)+180)%360,rE=1.00014-.01671*Math.cos(M),rM=1.5237*(1-.0934**2)/(1+.0934*Math.cos(rad(lE-336)));return rM-rE}
-let Q;
-function plan(){const p=PF[$("pf").value],al=p.al||180*p.T/259,Lo=al-wM*p.T,opp=Date.parse($("op2").value),la=opp-Lo/(wE-wM)*DAY,T=p.T,R=p.R||p.T,Lr=wE*R-al*R/T;
-let S=p.S!=null?p.S:(((Lo-(wE*T-al))%360+360)%360)/(wE-wM)-T;const ar=la+T*DAY,dep=ar+S*DAY,back=dep+R*DAY,tot=T+S+R,dose=1.84*(T+R)+.67*S,ad=odist(opp);
-Q={p,al,Lo,la,T,S,R,tot,d0:(la-Date.UTC(2000,0,1,12))/DAY};
-$("ds").max=Math.round(tot);
-const rows=[["Kalkış (KSC)",fmt(la)],["Mars’a varış",fmt(ar)+" ("+T+" gün)"],["Yüzeyde kalış",Math.round(S)+" gün"],["Mars’tan kalkış",fmt(dep)],["Dünya’ya dönüş",fmt(back)+" ("+R+" gün)"],["Toplam görev",Math.round(tot)+" gün"],["Karşıtlıkta Dünya–Mars",ad.toFixed(2)+" AU ≈ "+Math.round(ad*149.6)+" milyon km"],["Tahmini doz (uçuş+yüzey)",Math.round(dose)+" mSv"+(dose>600?" ✗ (600 sınırı aşılır)":" ✓")]];
-$("tb").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("");draw()}
-function draw(){const c=$("sim"),x=c.getContext("2d"),W=c.width,s=W/2/1.75,t=+$("ds").value,{al,Lo,T,S,R,d0}=Q,lE0=100.46+wE*d0,pos=(r,a)=>[W/2+r*s*Math.cos(rad(a)),W/2-r*s*Math.sin(rad(a))];
-x.clearRect(0,0,W,W);x.strokeStyle="rgba(95,224,208,.35)";[1,1.524].forEach(r=>{x.beginPath();x.arc(W/2,W/2,r*s,0,7);x.stroke()});
-x.fillStyle="#ffb347";x.beginPath();x.arc(W/2,W/2,6,0,7);x.fill();
-const ship=u=>{if(u<=T){const f=u/T;return[1+.524*f,lE0+al*f]}if(u<=T+S)return[1.524,lE0+Lo+wM*(u-T)+0];const Ld=lE0+Lo+wM*(T+S)+0;const f=(u-T-S)/R;return[1.524-.524*f,Ld+al*f]};
-x.strokeStyle="#ffb347";x.beginPath();for(let u=0;u<=t;u+=3){const[r,a]=ship(u),p=pos(r,a);u?x.lineTo(...p):x.moveTo(...p)}x.stroke();
-const E=pos(1,lE0+wE*t),M=pos(1.524,lE0+Lo+wM*t),sh=ship(t),P=pos(sh[0],sh[1]);
-[[E,"#4aa3ff","Dünya"],[M,"#ff6b5b","Mars"]].forEach(([p,col,n])=>{x.fillStyle=col;x.beginPath();x.arc(p[0],p[1],7,0,7);x.fill();x.fillStyle="#e9f6f4";x.font="13px sans-serif";x.fillText(n,p[0]+10,p[1]-8)});
-x.fillStyle="#fff";x.beginPath();x.arc(P[0],P[1],4,0,7);x.fill();
-const dist=Math.hypot(E[0]-M[0],E[1]-M[1])/s*149.6;$("dd").textContent=t;$("dt").textContent=fmt(Q.la+t*DAY);
-$("ph").textContent=(t<=T?"Dünya→Mars geçişi":t<=T+S?"Mars yüzeyinde (Jezero)":"Mars→Dünya dönüşü")+" · Dünya–Mars ≈ "+Math.round(dist)+" milyon km"}
-$("pf").onchange=$("op2").onchange=plan;$("ds").oninput=draw;
-$("mis").onclick=()=>{$("mp").classList.add("on");plan()};$("cls").onclick=()=>$("mp").classList.remove("on");
-
-
+ const mn=T("dk","min"),sp=+$("spd").value;$("sv").textContent=nf(sp.toFixed(1));
+ const walk=tot/(sp*1000/3600),sci=RT.filter(x=>x.t=="end").length*$("stp").value*60,total=walk+sci,use=8*3600*.7,mar=use-total;
+ const spe=$("spe").checked;$("spa").style.display=spe?"block":"none";
+ $("dist").textContent=Math.round(tot)+" m";$("walk").textContent=Math.round(walk/60)+" "+mn;$("sci").textContent=Math.round(sci/60)+" "+mn;
+ $("mar").innerHTML=wp.length>1?`<span class="${mar>=0?"ok":"bad"}">${Math.round(mar/60)} ${mn} ${mar>=0?"✓":"✗"}</span>`:"—";
+ $("dose").textContent=nf((.67/24*(spe?5:1)*total/3600).toFixed(2))+" mSv";
+ let legs="";for(let i=1;i<wp.length;i++){const b=brg(wp[i-1],wp[i]);legs+=`<div class="leg${i-1==sel?" sel":""}" data-i="${i-1}"><div class="row"><span>${RT[i-1].lb} → ${RT[i].lb}</span><b>${Math.round(b)}° ${card(b)}</b></div><small>${Math.round(cum[i]-cum[i-1])} m · ${Math.round((cum[i]-cum[i-1])/(sp*1000/3600)/60)} ${mn}</small></div>`}
+ $("legs").innerHTML=legs||"<small>"+T("Haritaya tıklayarak durak ekleyin. İlk nokta taban (⌂).","Click the map to add stops. The first point is the base (⌂).")+"</small>";
+ document.querySelectorAll(".leg").forEach(e=>e.onclick=()=>{sel=+e.dataset.i;upd()});
+ let h=null,txt="";const p=at(+$("prog").value/100);
+ if(wp.length>1&&p){me.addTo(map).setLatLng(p.ll);const s=sel>=0?sel:p.seg;h=brg(wp[s],wp[s+1]);txt=sel>=0?T("Seçili bölüm","Selected leg"):T("İlerleme noktasındaki yön","Heading at progress point");
+  $("ret").textContent=Math.round(hav(p.ll,wp[0])/(sp*1000/3600)/60)+" "+mn}else{map.removeLayer(me);$("ret").textContent="—"}
+ if(h==null&&sel>=0&&wp.length>1){h=brg(wp[sel],wp[sel+1])}
+ $("hd").firstChild.textContent=h==null?"—":Math.round(h)+"° "+card(h);$("hdl").textContent=h==null?T("Yön için rota ekleyin","Add a route for heading"):txt;tape(h==null?0:h)}
 /* ===== Sığınak bölgesi: konumlar ve katmanlar ===== */
-const fmtLL=(p,n=3)=>Math.abs(p[0]).toFixed(n).replace(".",",")+"°"+(p[0]>=0?"K":"G")+" "+Math.abs(p[1]).toFixed(n).replace(".",",")+"°"+(p[1]<0?"B":"D");
+const fmtLL=(p,n=3)=>nf(Math.abs(p[0]).toFixed(n))+"°"+(p[0]>=0?"N":T("G","S"))+" "+nf(Math.abs(p[1]).toFixed(n))+"°"+T(p[1]<0?"B":"D",p[1]<0?"W":"E");
 const BASE=[46.56,-173.005],CRATER_R=3,RINGS=[2,4,8,16,20];
 const SITES=[
-{id:"base",ad:"Ana sığınak (üs)",ll:BASE,g:"sig",t:"⌂",c:"#ffffff",not:"Ana üs."},
-{id:"land",ad:"İniş noktası",ll:[46.56,-173.00468],dg:5,g:"sig",ring:1,c:"#ffb347",not:"İniş noktası; üssün hemen yanında."},
-{id:"sh2",ad:"Acil sığınak 2",ll:[46.62,-172.62],g:"sig",t:"S2",c:"#8be28b",not:"İleri mesafeli acil sığınak."},
-{id:"ice",ad:"Buz sondaj noktası",ll:[46.695,-173.005],g:"bil",t:"BZ",c:"#6fd0ff",not:"Buz sondajı; üsten 8 km halkası üzerinde."},
-{id:"cr",ad:"Hidratlı mineral / krater",ll:[46.51,-172.515],g:"bil",t:"KR",c:"#ffb347",not:"CRISM hidratlı mineral/buz işareti; HiRISE kaya haritası (dairesel alan)."},
-{id:"shr",ad:"SHARAD yer doğrulaması",ll:[46.56,-173.3],g:"bil",t:"SH",c:"#c79bff",not:"SHARAD radar verisinin yerde doğrulanması."}
-];
-const G={sig:L.layerGroup().addTo(map),bil:L.layerGroup().addTo(map),hal:L.layerGroup().addTo(map),dai:L.layerGroup().addTo(map)};
+{id:"base",n:["Ana sığınak (üs)","Main shelter (base)"],ll:BASE,g:"sig",t:"⌂",c:"#ffffff",o:["Ana üs.","Main base."]},
+{id:"land",n:["İniş noktası","Landing point"],ll:[46.56,-173.00468],dg:5,g:"sig",ring:1,c:"#ffb347",o:["İniş noktası; üssün hemen yanında.","Landing point; right next to the base."]},
+{id:"sh2",n:["Acil sığınak 2","Emergency shelter 2"],ll:[46.62,-172.62],g:"sig",t:"S2",c:"#8be28b",o:["İleri mesafeli acil sığınak.","Far-range emergency shelter."]},
+{id:"ice",n:["Buz sondaj noktası","Ice drilling point"],ll:[46.695,-173.005],g:"bil",t:"BZ",c:"#6fd0ff",o:["Buz sondajı; üsten 8 km halkası üzerinde.","Ice drilling; on the 8 km ring from base."]},
+{id:"cr",n:["Hidratlı mineral / krater","Hydrated mineral / crater"],ll:[46.51,-172.515],g:"bil",t:"KR",c:"#ffb347",o:["CRISM hidratlı mineral/buz işareti; HiRISE kaya haritası (dairesel alan).","CRISM hydrated-mineral/ice signature; HiRISE boulder map (circular area)."]},
+{id:"shr",n:["SHARAD yer doğrulaması","SHARAD ground-truth"],ll:[46.56,-173.3],g:"bil",t:"SH",c:"#c79bff",o:["SHARAD radar verisinin yerde doğrulanması.","Ground verification of SHARAD radar data."]}];
+const G={sig:L.layerGroup().addTo(map),bil:L.layerGroup().addTo(map),hal:L.layerGroup().addTo(map),dai:L.layerGroup().addTo(map),jd:L.layerGroup().addTo(map)};
 function dest(p,d,b){const f=rad(p[0]),l=rad(p[1]),dl=d/R,t=rad(b),f2=Math.asin(Math.sin(f)*Math.cos(dl)+Math.cos(f)*Math.sin(dl)*Math.cos(t)),l2=l+Math.atan2(Math.sin(t)*Math.sin(dl)*Math.cos(f),Math.cos(dl)-Math.sin(f)*Math.sin(f2));return[deg(f2),((deg(l2)+540)%360)-180]}
 const circ=(c,km,n=144)=>Array.from({length:n+1},(_,i)=>dest(c,km*1000,i*360/n));
 const sicon=(t,c)=>L.divIcon({className:"",html:`<div style="width:26px;height:26px;border-radius:50%;background:${c};color:#06191a;font:700 11px sans-serif;display:flex;align-items:center;justify-content:center;border:2px solid #06191a;box-shadow:0 0 0 1px ${c}">${t}</div>`,iconSize:[26,26],iconAnchor:[13,13]});
-const fd=d=>d<1000?Math.round(d)+" m":(d/1000).toFixed(1).replace(".",",")+" km";
-function pop(s){const d=hav(BASE,s.ll),b=brg(BASE,s.ll),I=INFO[s.id]||{},e=document.createElement("div");e.className="pu";
-e.innerHTML=`<b>${I.ad||s.ad}</b><br>${fmtLL(s.ll,s.dg||3)}<br>`+(s.id=="base"?"":`Üsten: ${fd(d)} · ${Math.round(b)}° ${card(b)}<br>`)+(INFO[s.id]?imgHtml(s.id,I):"")+`<small>${I.txt||s.not}</small><br>`;
-if(s.id!="base"){const bt=document.createElement("button");bt.textContent="Rotaya ekle";bt.onclick=()=>{addWp(s.ll.slice());map.closePopup()};e.appendChild(bt)}return e}
-// menzil halkaları (Mars yarıçapıyla gerçek daireler)
-RINGS.forEach(km=>{const k8=km==8;G.hal.addLayer(L.polyline(circ(BASE,km),{color:k8?"#6fd0ff":"#5fe0d0",weight:k8?2:1,opacity:k8?.9:.5,dashArray:k8?null:"3 6",interactive:false}));
-G.hal.addLayer(L.circleMarker(dest(BASE,km*1000,0),{radius:1,opacity:0,fillOpacity:0,interactive:false}).bindTooltip(km+" km",{permanent:true,direction:"top",offset:[0,-2],className:"lbl"}))});
-// bölge daireleri
-SITES.filter(s=>s.id=="cr").forEach(s=>G.dai.addLayer(L.polygon(circ(s.ll,CRATER_R),{color:"#ffb347",weight:2,dashArray:"5 4",fillColor:"#ffb347",fillOpacity:.12}).bindTooltip("HiRISE kaya haritası alanı (~"+CRATER_R+" km yarıçap)",{sticky:true,className:"lbl"})));
-// işaretçiler
-SITES.forEach(s=>{s.m=s.ring?L.circleMarker(s.ll,{radius:16,color:s.c,weight:2,dashArray:"4 3",fillOpacity:0}):L.marker(s.ll,{icon:sicon(s.t,s.c),zIndexOffset:500});
-s.m.bindPopup(()=>pop(s),{minWidth:200,maxWidth:260});if(!s.ring)s.m.bindTooltip(s.ad,{permanent:true,direction:"right",offset:[14,0],className:"lbl"});G[s.g].addLayer(s.m)});
-// konum listesi
+const fd=d=>d<1000?Math.round(d)+" m":nf((d/1000).toFixed(1))+" km";
+function pop(s){const d=hav(BASE,s.ll),b=brg(BASE,s.ll),i=ix(),e=document.createElement("div");e.className="pu";
+ e.innerHTML=`<b>${s.n[i]}</b><br>${fmtLL(s.ll,s.dg||3)}<br>`+(s.id=="base"?"":`${T("Üsten","From base")}: ${fd(d)} · ${Math.round(b)}° ${card(b)}<br>`)+`<small>${s.o[i]}</small><br>`;
+ if(s.id!="base"){const bt=document.createElement("button");bt.textContent=T("Rotaya ekle","Add to route");bt.onclick=()=>{addWp(s.ll.slice());map.closePopup()};e.appendChild(bt)}return e}
 function listSites(){const sp=+$("spd").value,v=sp*1000/3600,use=8*3600*.7,st=+$("stp").value*60;
-$("sites").innerHTML=SITES.map(s=>{const d=hav(BASE,s.ll),b=brg(BASE,s.ll);let w="";
-if(s.id!="base"&&d>100){const t=2*d/v+st,ok=t<=use;w=` · yürüyerek gidiş-dönüş ${Math.floor(t/3600)} sa ${Math.round(t%3600/60)} dk <span class="${ok?"ok":"bad"}">${ok?"✓":"✗ gezgin"}</span>`}
-return `<div class="site" data-id="${s.id}"><b><span class="sw" style="background:${s.c}"></span>${s.ad}</b><small>${fmtLL(s.ll,s.dg||3)}</small><small>${s.id=="base"?"üs":fd(d)+" · "+Math.round(b)+"° "+card(b)+w}</small></div>`}).join("");
-document.querySelectorAll(".site").forEach(e=>e.onclick=()=>{const s=SITES.find(x=>x.id==e.dataset.id);map.setView(s.ll,Math.max(map.getZoom(),11));s.m.openPopup()})}
-listSites();$("spd").addEventListener("input",listSites);$("stp").addEventListener("input",listSites);
-// katman anahtarları
-[["gSig","sig"],["gBil","bil"],["gHal","hal"],["gDai","dai"]].forEach(([i,g])=>$(i).onchange=()=>$(i).checked?G[g].addTo(map):map.removeLayer(G[g]));
+ $("sites").innerHTML=SITES.map(s=>{const d=hav(BASE,s.ll),b=brg(BASE,s.ll);let w="";
+  if(s.id!="base"&&d>100){const t=2*d/v+st,ok=t<=use;w=` · ${T("yürüyerek gidiş-dönüş","walking round trip")} ${Math.floor(t/3600)} ${T("sa","h")} ${Math.round(t%3600/60)} ${T("dk","min")} <span class="${ok?"ok":"bad"}">${ok?"✓":T("✗ gezgin","✗ rover")}</span>`}
+  return `<div class="site" data-id="${s.id}"><b><span class="sw" style="background:${s.c}"></span>${s.n[ix()]}</b><small>${fmtLL(s.ll,s.dg||3)}</small><small>${s.id=="base"?T("üs","base"):fd(d)+" · "+Math.round(b)+"° "+card(b)+w}</small></div>`}).join("");
+ document.querySelectorAll(".site").forEach(e=>e.onclick=()=>{const s=SITES.find(x=>x.id==e.dataset.id);map.setView(s.ll,Math.max(map.getZoom(),11));s.m.openPopup()})}
+$("spd").addEventListener("input",listSites);$("stp").addEventListener("input",listSites);
+[["gSig","sig"],["gBil","bil"],["gHal","hal"],["gDai","dai"],["gJd","jd"]].forEach(([i,g])=>$(i).onchange=()=>$(i).checked?G[g].addTo(map):map.removeLayer(G[g]));
 $("gLbl").onchange=()=>$("map").classList.toggle("nolbl",!$("gLbl").checked);
-// görünüm ve örnek rota
 const fit=()=>map.fitBounds(L.latLngBounds(SITES.map(s=>s.ll)).pad(.1),{paddingTopLeft:[240,60],paddingBottomRight:[270,70]});
 $("ctr2").onclick=fit;
-$("demoI").onclick=()=>{resetRoute();$("loop").click();fit()};
-
-/* ===== JSON: landing zone merkezli D1–D5 daireleri ===== */
-const JDATA={"waypoints":[
-{"id":"base","lat":46.56126,"lon":-173.03432},
-{"id":"D1","lat":46.56,"lon":-173.005},
-{"id":"D2","lat":46.59679,"lon":-173.00583},
-{"id":"D3","lat":46.62992,"lon":-173.00566},
-{"id":"D4","lat":46.6634,"lon":-173.00497},
-{"id":"D5","lat":46.695,"lon":-173.005}]};
-/* Popup içerikleri: txt (açıklama) ve img (görsel URL’si/dosya yolu) alanlarını kendiniz doldurun */
+$("demoI").onclick=()=>{resetRoute(5);$("loop").click();fit()};
+/* ===== D1–D10: iniş bölgesi (LZ) merkezli, yarıçapı yaklaşık eşit adımlarla artan daireler ===== */
+const JDATA={waypoints:[{id:"base",lat:46.56126,lon:-173.03432},{id:"D1",lat:46.56,lon:-173.005},{id:"D2",lat:46.59679,lon:-173.00583},{id:"D3",lat:46.62992,lon:-173.00566},{id:"D4",lat:46.6634,lon:-173.00497},{id:"D5",lat:46.695,lon:-173.005}]};
+[9900,11800,13700,15600,17500].forEach((r,i)=>{const q=dest([46.56126,-173.03432],r,8.6);JDATA.waypoints.push({id:"D"+(i+6),lat:q[0],lon:q[1]})});
+/* Her çemberde yapılacaklar: n=başlık, s=amaç, a=görevler (| ile ayrılmış), k=kanıt/doğrulama notu — [TR, EN] */
 const INFO={
- base:{ad:"Ana sığınak (üs)",txt:"",img:""},
- D1:{ad:"D1 · 1. çember (ana sığınak)",txt:"",img:""},
- D2:{ad:"D2 · 2. çember",txt:"",img:""},
- D3:{ad:"D3 · 3. çember",txt:"",img:""},
- D4:{ad:"D4 · 4. çember",txt:"",img:""},
- D5:{ad:"D5 · buz sondaj noktası",txt:"",img:""}
-};
-function imgHtml(k,I){return I.img?`<img src="${I.img}" alt="${I.ad||k}" style="width:100%;border-radius:6px;margin:6px 0;display:block">`:`<div style="border:1px dashed var(--l);border-radius:6px;padding:16px 6px;margin:6px 0;text-align:center;color:var(--m)">Görsel eklenecek (INFO.${k}.img)</div>`}
-G.jd=L.layerGroup().addTo(map);
+D1:{n:["D1 · Ana sığınak (hab) çevresi","D1 · Main shelter (habitat) zone"],
+s:["Üs kurulumu ve yakın çevre keşfi; EVA’nın en kısa ve en güvenli halkası.","Base set-up and near-field survey; the shortest, safest EVA ring."],
+a:["Habitat, güç ve radyasyon sığınağı kontrolü|Yakın regolit taraması ve ilk toprak numunesi|Skafandr testi ve acil dönüş provası","Check habitat, power and radiation shelter|Scan nearby regolith and take a first soil sample|Test suits and rehearse emergency return"],
+k:["Not: Veriler bölgeseldir; yerel mikro-tehlikeler HiRISE ile doğrulanmalı.","Note: Data are regional; local micro-hazards need HiRISE verification."]},
+D2:{n:["D2 · Toprak ve kaya analizi","D2 · Soil and rock analysis"],
+s:["Yüzey regoliti ve blokların fiziksel/kimyasal karakterizasyonu.","Physical and chemical characterization of surface regolith and boulders."],
+a:["Yüzeyden ve 20–30 cm derinlikten toprak numunesi|Taşınabilir XRF/Raman ile kaya ve toprak bileşimi|Blok yoğunluğu ve tane boyutu sayımı (CTX/HiRISE ile kıyas)","Soil samples from the surface and 20–30 cm depth|Portable XRF/Raman for rock and soil composition|Boulder density and grain-size counts (compare with CTX/HiRISE)"],
+k:["CTX’te “blok yoğunluğu düşük” gözlemi kesin sayım değildir; yerinde doğrulanır.","The CTX “low boulder density” reading is not a true count; verify on site."]},
+D3:{n:["D3 · Krater morfolojisi ve topografya","D3 · Crater morphology and topography"],
+s:["Duvar, teras, sırt ve moloz birikimlerinin yerinde incelenmesi.","On-site study of walls, terraces, ridges and debris deposits."],
+a:["Taban–duvar geçişinde topografik profil ve eğim ölçümü|Teras basamakları ve güney duvar eteğindeki moloz birikimi gözlemi|MOLA profiliyle (ort. ≈0,75° eğim) yerel eğim karşılaştırması","Topographic profile and slope at the floor–wall transition|Observe terrace steps and debris at the south wall foot|Compare local slope with the MOLA profile (mean ≈0.75°)"],
+k:["MOLA örnekleme aralığı ≈209 m; metre ölçekli tehlikeler yerde taranmalı.","MOLA sampling is ≈209 m; metre-scale hazards must be surveyed on site."]},
+D4:{n:["D4 · Mineral ve spektral analiz","D4 · Mineral and spectral analysis"],
+s:["Hidratlı mineral ve açığa çıkmış malzeme izlerinin yerde doğrulanması.","Ground-truthing hydrated minerals and exposed-material signatures."],
+a:["Taşınabilir spektrometreyle hidratlı mineral taraması|CRISM işaretli yamaç ve açığa çıkmış yüzeylerden örnek alma|Örnek tüplerinin etiketlenmesi ve mühürlenmesi","Hydrated-mineral scan with a portable spectrometer|Sample CRISM-flagged slopes and exposed surfaces|Label and seal sample tubes"],
+k:["CRISM yüzey spektrumudur; gömülü buzu doğrudan haritalamaz.","CRISM sees surface spectra; it does not map buried ice directly."]},
+D5:{n:["D5 · Buz sondajı","D5 · Ice drilling"],
+s:["Görevin ana ISRU hedefi: yüzey altı su buzunun doğrulanması.","The mission’s main ISRU target: confirming subsurface water ice."],
+a:["Yer radarı (GPR) ile SHARAD yansımalarının doğrulanması|Çekirdek sondajı: buz derinliği, kalınlık, saflık ve regolit oranı|Nötron/hidrojen taraması ve dielektrik sabiti ölçümü","Ground-penetrating radar (GPR) to verify SHARAD reflections|Core drilling: ice depth, thickness, purity and regolith fraction|Neutron/hydrogen scan and dielectric-constant measurement"],
+k:["SHARAD/literatür bölgesel kanıttır; bu koordinatta buz kalınlığı ölçülmemiştir.","SHARAD/literature is regional evidence; ice thickness is not measured at this location."]},
+D6:{n:["D6 · Buz–regolit stratigrafisi","D6 · Ice–regolith stratigraphy"],
+s:["Teraslı kraterler ve viskoz akış benzeri yapıların karşılaştırmalı incelenmesi.","Comparative study of terraced craters and viscous-flow-like features."],
+a:["İkinci GPR/sondaj hattı: D5 ile buz tabakası sürekliliği|Teras yüzeylerinde tabakalanma ve regolit örtü kalınlığı|Komşu şerit referansı (ε≈4,68) ile yerel dielektrik sonucu kıyası","Second GPR/drill line: ice-layer continuity vs. D5|Layering and regolith cover thickness on terrace surfaces|Compare local dielectric result with the neighbouring-strip reference (ε≈4.68)"],
+k:["4,68 komşu şerit değeridir; yerel ölçüm olarak sunulmamalı.","4.68 is a neighbouring-strip value; do not present it as a local measurement."]},
+D7:{n:["D7 · Volkanik birimler ve jeoloji","D7 · Volcanic units and geology"],
+s:["Arcadia Formasyonu/Amazoniyen lav birimlerinin saha doğrulaması.","Field verification of Arcadia Formation / Amazonian lava units."],
+a:["Olası lav yüzlekleri ve kaya türlerinden örnekleme|Mineraloji için çekirdek/ince kesit örnekleri|Birim sınırlarının USGS (Scott & Tanaka) haritasıyla karşılaştırılması","Sample likely lava outcrops and rock types|Core/thin-section samples for mineralogy|Compare unit boundaries with the USGS (Scott & Tanaka) map"],
+k:["Harita yorumu her kayanın volkanik olduğunu kanıtlamaz.","Map interpretation does not prove every rock is volcanic."]},
+D8:{n:["D8 · Çevre ve radyasyon istasyonu","D8 · Environment and radiation station"],
+s:["Yerel atmosfer ve doz verisi toplayan sabit ölçüm noktası.","Fixed station collecting local atmosphere and dose data."],
+a:["Sıcaklık, basınç, rüzgâr ve toz için hava istasyonu|RAD benzeri doz ölçer: Gale referansı (≈0,67 mSv/gün) ile kıyas|PSG model sıcaklıklarıyla (−95/−99 °C senaryosu) ölçümlerin karşılaştırılması","Weather station for temperature, pressure, wind and dust|RAD-like dosimeter: compare with Gale reference (≈0.67 mSv/day)|Compare measurements with PSG model temperatures (−95/−99 °C scenario)"],
+k:["Arcadia’da doğrudan RAD ölçümü yoktur; bu istasyon ilk yerel veriyi sağlar.","No direct RAD measurement exists at Arcadia; this station gives the first local data."]},
+D9:{n:["D9 · Acil sığınak 2 ve ileri depo","D9 · Emergency shelter 2 and forward depot"],
+s:["Uzun EVA’lar için yedek yaşam desteği ve güvenli dönüş noktası.","Backup life support and safe fallback for long EVAs."],
+a:["Yedek O₂, su, gıda ve onarım kiti deposu|İletişim rölesi ve navigasyon işaretçisi kurulumu|SPE uyarısında alternatif sığınma ve gezgin buluşma noktası","Depot of spare O₂, water, food and repair kit|Install a comms relay and navigation beacon|Alternate refuge and rover rendezvous during an SPE alert"],
+k:["Yürüyerek gidiş-dönüş O₂ marjını aşabilir; basınçlı gezgin gerekir.","A walking round trip can exceed the O₂ margin; a pressurized rover is needed."]},
+D10:{n:["D10 · Uzak sınır ve referans noktası","D10 · Outer limit and reference point"],
+s:["En geniş halka: gezgin destekli keşif ve karşılaştırma örnekleri.","Widest ring: rover-supported exploration and comparison samples."],
+a:["Gezgin ve dronla uzun mesafe keşif/görüntüleme|Arka plan toprak ve regolit örneği: iç halkalarla kıyas|Sonraki sondaj ve örnekleme hedeflerinin belirlenmesi","Long-range rover/drone survey and imaging|Background soil and regolith sample: compare with inner rings|Pick targets for further drilling and sampling"],
+k:["Nokta kendi çemberi üzerinde kaydırılabilir; rota sabit değildir.","The point can slide along its circle; the route is not fixed."]}};
+const NOTE=()=>T("Not: Belirli bir rota tanımlanmamıştır. İniş yapan astronotun alanı (LZ) merkez alınarak yarıçapları yaklaşık eşit oranda artan 10 daire çizilmiştir. Noktalar dairenin kenarı boyunca ya da dairenin içinde serbestçe hareket ettirilebilir; kendi yolunu çizmek isteyen için rota çizme programı (kırılma noktası, mesafe, süre, O₂ ve doz hesabı) eklenmiştir.","Note: No specific route is defined. Ten circles with roughly equal radius steps are drawn around the astronaut’s landing area (LZ). Points can move freely along a circle’s edge or inside it; for anyone who wants to draw their own path, a route planner (breakpoints, distance, time, O₂ and dose) is provided.");
+function dpop(d,ll){ll=ll||d.ll;const I=INFO[d.id],i=ix(),dd=hav(BASE,ll),b=brg(BASE,ll),e=document.createElement("div");e.className="pu";
+ e.innerHTML=`<b>${I.n[i]}</b><br>${fmtLL(ll,4)}<br>${T("LZ’ye","To LZ")}: ${fd(hav(JB,ll))} (${T("çember yarıçapı ≈","circle radius ≈")} ${fd(d.r)})<br>`+(dd>5?`${T("Ana sığınaktan","From main shelter")}: ${fd(dd)} · ${Math.round(b)}° ${card(b)}<br>`:T("Ana sığınakla aynı nokta","Same point as the main shelter")+"<br>")
+ +`<small>${I.s[i]}</small><ul>${I.a[i].split("|").map(x=>"<li>"+x+"</li>").join("")}</ul><small>${I.k[i]}</small><hr style="border:0;border-top:1px solid var(--l)"><small>${NOTE()}</small><br>`;
+ const bt=document.createElement("button");bt.textContent=T("Rotaya ekle","Add to route");bt.onclick=()=>{addWp(ll.slice());map.closePopup()};e.appendChild(bt);return e}
 const JW=JDATA.waypoints,JB=[JW[0].lat,JW[0].lon],NJ=JW.length-1,
- JD=JW.slice(1).map((w,i)=>({id:w.id,ll:[w.lat,w.lon],r:hav(JB,[w.lat,w.lon]),col:`hsl(${Math.round(190-190*(NJ>1?i/(NJ-1):0))},90%,58%)`})),
- JC={c:JB,R:JD.map(d=>d.r),col:JD.map(d=>d.col),ids:JD.map(d=>d.id),endId:JD[NJ-1].id,end:JD[NJ-1].ll,
-     def:JD.slice(0,NJ-1).map((d,i)=>i?d.ll.slice():dest(JB,d.r,45))};
+JD=JW.slice(1).map((w,i)=>({id:w.id,ll:[w.lat,w.lon],r:hav(JB,[w.lat,w.lon]),col:`hsl(${Math.round(190-190*(NJ>1?i/(NJ-1):0))},90%,58%)`})),
+JC={c:JB,R:JD.map(d=>d.r),col:JD.map(d=>d.col),ids:JD.map(d=>d.id),def:JD.slice(0,NJ-1).map((d,i)=>i?d.ll.slice():dest(JB,d.r,45))};
 const dchip=(t,c)=>L.divIcon({className:"",html:`<div class="dchip" style="--cc:${c}">${t}</div>`,iconSize:[30,18],iconAnchor:[15,32]});
-function dpop(d){const I=INFO[d.id]||{},b=brg(BASE,d.ll),dd=hav(BASE,d.ll),e=document.createElement("div");e.className="pu";
- e.innerHTML=`<b>${I.ad||d.id}</b><br>${fmtLL(d.ll,4)}<br>Landing zone’a: ${fd(d.r)} (çember yarıçapı)<br>`+(dd>5?`Ana sığınaktan: ${fd(dd)} · ${Math.round(b)}° ${card(b)}<br>`:"Ana sığınakla aynı nokta<br>")+imgHtml(d.id,I)+`<small>${I.txt||"Açıklama eklenecek (INFO."+d.id+".txt)"}</small>`;return e}
-// landing zone işaretçisi
-G.jd.addLayer(L.marker(JB,{icon:sicon("LZ","#ffffff"),zIndexOffset:600}).bindTooltip("Landing zone",{permanent:true,direction:"left",offset:[-14,0],className:"lbl"}));
-// landing zone merkezinden ana base’e kesikli çizgi
-G.jd.addLayer(L.polyline([JB,BASE],{color:"#ffffff",weight:2.5,dashArray:"8 6",interactive:false}));
-(function(){const mid=[(JB[0]+BASE[0])/2,(JB[1]+BASE[1])/2];
- G.jd.addLayer(L.circleMarker(mid,{radius:1,opacity:0,fillOpacity:0,interactive:false})
-  .bindTooltip("Base’e "+fd(hav(JB,BASE))+" · "+Math.round(brg(JB,BASE))+"° "+card(brg(JB,BASE)),{permanent:true,direction:"bottom",offset:[0,4],className:"lbl"}))})();
-// büyük yarıçaptan küçüğe çiz
-JD.slice().sort((a,b)=>b.r-a.r).forEach(d=>{
- G.jd.addLayer(L.polygon(circ(JB,d.r/1000),{color:d.col,weight:2.5,fillColor:d.col,fillOpacity:.05,interactive:false}));
- G.jd.addLayer(L.circleMarker(dest(JB,d.r,0),{radius:1,opacity:0,fillOpacity:0,interactive:false})
-  .bindTooltip(d.id+" · "+fd(d.r),{permanent:true,direction:"top",offset:[0,-2],className:"lbl"}));
- G.jd.addLayer(L.circleMarker(d.ll,{radius:5,color:"#06191a",weight:2,fillColor:d.col,fillOpacity:1,interactive:false}));
- G.jd.addLayer(L.marker(d.ll,{icon:dchip(d.id,d.col),zIndexOffset:800}).bindPopup(()=>dpop(d),{minWidth:200,maxWidth:260}));
-});
-$("gJd").onchange=()=>$("gJd").checked?G.jd.addTo(map):map.removeLayer(G.jd);
-resetRoute();
-
+/* Katmanları (yeniden) oluştur — dil değişince de çağrılır */
+function build(){Object.values(G).forEach(g=>g.clearLayers());
+ RINGS.forEach(km=>{const k8=km==8;G.hal.addLayer(L.polyline(circ(BASE,km),{color:k8?"#6fd0ff":"#5fe0d0",weight:k8?2:1,opacity:k8?.9:.5,dashArray:k8?null:"3 6",interactive:false}));
+  G.hal.addLayer(L.circleMarker(dest(BASE,km*1000,0),{radius:1,opacity:0,fillOpacity:0,interactive:false}).bindTooltip(km+" km",{permanent:true,direction:"top",offset:[0,-2],className:"lbl"}))});
+ SITES.filter(s=>s.id=="cr").forEach(s=>G.dai.addLayer(L.polygon(circ(s.ll,CRATER_R),{color:"#ffb347",weight:2,dashArray:"5 4",fillColor:"#ffb347",fillOpacity:.12}).bindTooltip(T("HiRISE kaya haritası alanı (~"+CRATER_R+" km yarıçap)","HiRISE boulder-map area (~"+CRATER_R+" km radius)"),{sticky:true,className:"lbl"})));
+ SITES.forEach(s=>{s.m=s.ring?L.circleMarker(s.ll,{radius:16,color:s.c,weight:2,dashArray:"4 3",fillOpacity:0}):L.marker(s.ll,{icon:sicon(s.t,s.c),zIndexOffset:500});
+  s.m.bindPopup(()=>pop(s),{minWidth:200,maxWidth:260});if(!s.ring)s.m.bindTooltip(s.n[ix()],{permanent:true,direction:"right",offset:[14,0],className:"lbl"});G[s.g].addLayer(s.m)});
+ G.jd.addLayer(L.marker(JB,{icon:sicon("LZ","#ffffff"),zIndexOffset:600}).bindTooltip(T("İniş bölgesi (LZ)","Landing zone (LZ)"),{permanent:true,direction:"left",offset:[-14,0],className:"lbl"}));
+ G.jd.addLayer(L.polyline([JB,BASE],{color:"#ffffff",weight:2.5,dashArray:"8 6",interactive:false}));
+ const mid=[(JB[0]+BASE[0])/2,(JB[1]+BASE[1])/2];
+ G.jd.addLayer(L.circleMarker(mid,{radius:1,opacity:0,fillOpacity:0,interactive:false}).bindTooltip(T("Base’e ","To base ")+fd(hav(JB,BASE))+" · "+Math.round(brg(JB,BASE))+"° "+card(brg(JB,BASE)),{permanent:true,direction:"bottom",offset:[0,4],className:"lbl"}));
+ JD.slice().sort((a,b)=>b.r-a.r).forEach(d=>{
+  G.jd.addLayer(L.polygon(circ(JB,d.r/1000),{color:d.col,weight:2.5,fillColor:d.col,fillOpacity:.05,interactive:false}));
+  G.jd.addLayer(L.circleMarker(dest(JB,d.r,0),{radius:1,opacity:0,fillOpacity:0,interactive:false}).bindTooltip(d.id+" · "+fd(d.r),{permanent:true,direction:"top",offset:[0,-2],className:"lbl"}));
+  G.jd.addLayer(L.circleMarker(d.ll,{radius:5,color:"#06191a",weight:2,fillColor:d.col,fillOpacity:1,interactive:false}));
+  G.jd.addLayer(L.marker(d.ll,{icon:dchip(d.id,d.col),zIndexOffset:800}).bindPopup(()=>dpop(d),{minWidth:220,maxWidth:320}))})}
+/* ===== Dil (TR/EN) ===== */
+function setLang(l){LG=l;document.documentElement.lang=l;
+ document.querySelectorAll("[data-e]").forEach(e=>{if(e.dataset.t===undefined)e.dataset.t=e.textContent;e.textContent=l=="en"?e.dataset.e:e.dataset.t});
+ document.querySelectorAll("[data-ep]").forEach(e=>{if(e.dataset.pt===undefined)e.dataset.pt=e.placeholder;e.placeholder=l=="en"?e.dataset.ep:e.dataset.pt});
+ document.querySelectorAll("option[data-en]").forEach(o=>o.text=o.dataset[l]);
+ $("ltr").classList.toggle("on",l=="tr");$("len").classList.toggle("on",l=="en");
+ $("rnote").textContent=NOTE();listSites();upd();build()}
+$("ltr").onclick=()=>setLang("tr");$("len").onclick=()=>setLang("en");
+resetRoute(5);setLang("tr");
 /* ===== Yerel GeoTIFF ===== */
-const TL=[];let tn=0;
+const TL=[];
 const tst=t=>$("ts").textContent=t;
-function tlist(){$("tl").innerHTML=TL.map((t,i)=>`<div class="site" style="cursor:default"><label style="margin:0"><input type="checkbox" data-t="${i}" ${t.on?"checked":""}> ${t.name}</label><div class="row"><button data-g="${i}" style="padding:2px 8px">Git</button><button data-x="${i}" style="padding:2px 8px">Kaldır</button></div></div>`).join("");
-document.querySelectorAll("[data-t]").forEach(e=>e.onchange=()=>{const t=TL[+e.dataset.t];t.on=e.checked;e.checked?t.ov.addTo(map):map.removeLayer(t.ov)});
-document.querySelectorAll("[data-g]").forEach(e=>e.onclick=()=>map.fitBounds(TL[+e.dataset.g].ov.getBounds(),{paddingTopLeft:[240,60],paddingBottomRight:[270,70]}));
-document.querySelectorAll("[data-x]").forEach(e=>e.onclick=()=>{const t=TL.splice(+e.dataset.x,1)[0];map.removeLayer(t.ov);URL.revokeObjectURL(t.url);tlist()})}
+function tlist(){$("tl").innerHTML=TL.map((t,i)=>`<div class="site" style="cursor:default"><label style="margin:0"><input type="checkbox" data-t="${i}" ${t.on?"checked":""}> ${t.name}</label><div class="row"><button data-g="${i}" style="padding:2px 8px">Go</button><button data-x="${i}" style="padding:2px 8px">×</button></div></div>`).join("");
+ document.querySelectorAll("[data-t]").forEach(e=>e.onchange=()=>{const t=TL[+e.dataset.t];t.on=e.checked;e.checked?t.ov.addTo(map):map.removeLayer(t.ov)});
+ document.querySelectorAll("[data-g]").forEach(e=>e.onclick=()=>map.fitBounds(TL[+e.dataset.g].ov.getBounds(),{paddingTopLeft:[240,60],paddingBottomRight:[270,70]}));
+ document.querySelectorAll("[data-x]").forEach(e=>e.onclick=()=>{const t=TL.splice(+e.dataset.x,1)[0];map.removeLayer(t.ov);URL.revokeObjectURL(t.url);tlist()})}
 $("tOp").oninput=()=>TL.forEach(t=>t.ov.setOpacity($("tOp").value/100));
 async function addTiff(file,opt){opt=opt||{};
- if(typeof GeoTIFF==="undefined"){tst("geotiff.js yüklenemedi (internet bağlantısını kontrol edin).");return false}
+ if(typeof GeoTIFF==="undefined"){tst(T("geotiff.js yüklenemedi (internet bağlantısını kontrol edin).","geotiff.js failed to load (check your internet connection)."));return false}
  try{
-  tst("Okunuyor… (büyük dosyada biraz sürebilir)");await new Promise(r=>setTimeout(r,30));
+  tst(T("Okunuyor… (büyük dosyada biraz sürebilir)","Reading… (may take a while for large files)"));await new Promise(r=>setTimeout(r,30));
   const tiff=typeof file==="string"?await GeoTIFF.fromUrl(file):await GeoTIFF.fromBlob(file),img=await tiff.getImage(),W=img.getWidth(),H=img.getHeight(),spp=img.getSamplesPerPixel();
   let bb=null;try{bb=img.getBoundingBox()}catch(e){}
-  let w,so,e,n;
-  const okd=bb&&bb.every(isFinite)&&Math.abs(bb[0])<=360&&Math.abs(bb[2])<=360&&Math.abs(bb[1])<=90.001&&Math.abs(bb[3])<=90.001;
+  let w,so,e,n;const okd=bb&&bb.every(isFinite)&&Math.abs(bb[0])<=360&&Math.abs(bb[2])<=360&&Math.abs(bb[1])<=90.001&&Math.abs(bb[3])<=90.001;
   if(okd){[w,so,e,n]=bb}else{
-   const t=prompt("Dosyanın koordinatları derece cinsinden okunamadı"+(bb?" (değerler: "+bb.map(x=>Math.round(x)).join(", ")+")":"")+".\nSınırları girin: batı,doğu,güney,kuzey (derece; batı boylam negatif).\nÖrnek: -173.5,-172.4,46.4,46.8");
-   if(!t){tst("İptal edildi.");return false}
-   [w,e,so,n]=t.split(",").map(Number);if([w,e,so,n].some(x=>!isFinite(x))){tst("Sınırlar anlaşılamadı.");return false}}
+   const t=prompt(T("Dosyanın koordinatları derece cinsinden okunamadı","Could not read the file’s coordinates in degrees")+(bb?" ("+bb.map(x=>Math.round(x)).join(", ")+")":"")+".\n"+T("Sınırları girin: batı,doğu,güney,kuzey (derece; batı boylam negatif).","Enter bounds: west,east,south,north (degrees; west longitude negative).")+"\n"+T("Örnek","Example")+": -173.5,-172.4,46.4,46.8");
+   if(!t){tst(T("İptal edildi.","Cancelled."));return false}
+   [w,e,so,n]=t.split(",").map(Number);if([w,e,so,n].some(x=>!isFinite(x))){tst(T("Sınırlar anlaşılamadı.","Bounds not understood."));return false}}
   if(w>=180){w-=360;e-=360}
   const sc=Math.min(1,+$("tRes").value/Math.max(W,H)),ow=Math.max(1,Math.round(W*sc)),oh=Math.max(1,Math.round(H*sc));
-  tst("Çiziliyor "+ow+"×"+oh+" (kaynak "+W+"×"+H+")…");await new Promise(r=>setTimeout(r,30));
+  tst(T("Çiziliyor ","Rendering ")+ow+"×"+oh+" ("+T("kaynak ","source ")+W+"×"+H+")…");await new Promise(r=>setTimeout(r,30));
   const ras=await img.readRasters({width:ow,height:oh,resampleMethod:"bilinear",interleave:true}),nd=img.getGDALNoData();
   let lo=0,hi=255;
   if(spp<3){const sm=[];for(let i=0;i<ras.length;i+=spp*37){const v=ras[i];if(isFinite(v)&&v!==nd&&v!==0)sm.push(v)}sm.sort((a,b)=>a-b);if(sm.length){lo=sm[Math.floor(sm.length*.02)];hi=sm[Math.floor(sm.length*.98)]}if(hi<=lo)hi=lo+1}
@@ -411,14 +363,12 @@ async function addTiff(file,opt){opt=opt||{};
   const blob=await new Promise(r=>cv.toBlob(r,"image/png")),url=URL.createObjectURL(blob);
   if(opt.over&&opt.tok!==otok){URL.revokeObjectURL(url);return false}
   const ov=L.imageOverlay(url,[[so,w],[n,e]],{opacity:opt.over?$("op").value/100:$("tOp").value/100,interactive:false}).addTo(map);
-  if(opt.over){clearOver();ov._url=url;over=ov}
-  else{const fn=opt.name||file.name;TL.push({name:fn.length>26?fn.slice(0,24)+"…":fn,ov,url,on:true});tlist()}
+  if(opt.over){clearOver();ov._url=url;over=ov}else{const fn=opt.name||file.name;TL.push({name:fn.length>26?fn.slice(0,24)+"…":fn,ov,url,on:true});tlist()}
   map.fitBounds(ov.getBounds(),{paddingTopLeft:[240,60],paddingBottomRight:[270,70]});
-  tst("Eklendi: "+fmtLL([so,w])+" – "+fmtLL([n,e])+". Keskinlik için çözünürlüğü artırıp yeniden ekleyin.");return true
- }catch(err){console.error(err);tst("Hata: "+(err&&err.message||err));return false}}
-
+  tst(T("Eklendi: ","Added: ")+fmtLL([so,w])+" – "+fmtLL([n,e])+". "+T("Keskinlik için çözünürlüğü artırıp yeniden ekleyin.","For sharper output, raise the resolution and add again."));return true
+ }catch(err){console.error(err);tst(T("Hata: ","Error: ")+(err&&err.message||err));return false}}
 $("tf").onchange=()=>{const f=$("tf").files[0];$("tf").value="";const p=pendingOver;pendingOver=null;
- if(f&&p&&p.tok===otok)addTiff(f,{over:true,name:p.nm,tok:p.tok}).then(ok=>ost(ok?p.nm+" yüklendi.":p.nm+" okunamadı."))};
+ if(f&&p&&p.tok===otok)addTiff(f,{over:true,name:p.nm,tok:p.tok}).then(ok=>ost(ok?p.nm+T(" yüklendi."," loaded."):p.nm+T(" okunamadı."," could not be read.")))};
 fit();
 </script>
 </body>
