@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/img/banner.svg" alt="Beyond Rayfel: Arcadia Planitia mission planner" width="100%">
+<img src="readme/banner.svg" alt="Beyond Rayfel: Arcadia Planitia mission planner" width="100%">
 
 <br>
 
@@ -28,21 +28,41 @@
 
 </div>
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+
+## 📸 Gallery
+
+<div align="center">
+
+<table>
+<tr>
+<td width="50%" align="center"><img src="readme/03-menzil-halkalari.png" alt="D1 to D10 circles over the Viking map"><br><sub><b>Route planner:</b> D1–D10 circles, shelters and science points on the Viking map</sub></td>
+<td width="50%" align="center"><img src="readme/07-3d-duz-gorunum.png" alt="3D crater, flat view with a distance measurement"><br><sub><b>3D crater:</b> flat view with a two-click distance measurement</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="readme/08-3d-kabartma.png" alt="3D crater with illustrative relief"><br><sub><b>3D crater:</b> illustrative relief (brightness-based, not real elevation)</sub></td>
+<td align="center"><img src="readme/04-gorev-bilgisi.png" alt="Mission info panel" width="55%"><br><sub><b>Mission info:</b> distance, O₂ margin, dose and speed presets</sub></td>
+</tr>
+</table>
+
+</div>
+
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## Table of contents
 
-1. [Quick start](#-quick-start)
-2. [Repository structure](#-repository-structure)
-3. [Site navigation](#-site-navigation)
-4. [`projects.html` in depth](#%EF%B8%8F-projectshtml-in-depth)
+1. [Gallery](#-gallery)
+2. [Quick start](#-quick-start)
+3. [Repository structure](#-repository-structure)
+4. [Site navigation](#-site-navigation)
+5. [`projects.html` in depth](#%EF%B8%8F-projectshtml-in-depth)
    - [How the page is built](#how-the-page-is-built)
    - [Tab 1: Route planner](#tab-1--route-planner)
    - [Tab 2: 3D elevation view](#tab-2--3d-elevation-view)
-5. [Calculation model and assumptions](#-calculation-model-and-assumptions)
-6. [Data sources and technologies](#-data-sources-and-technologies)
+6. [Calculation model and assumptions](#-calculation-model-and-assumptions)
+7. [Data sources and technologies](#-data-sources-and-technologies)
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## 🚀 Quick start
 
@@ -65,7 +85,7 @@ Then open `http://localhost:8000/projects.html` in your browser.
 > [!IMPORTANT]
 > **An internet connection is required.** Map tiles come from NASA/JPL Mars Trek; Leaflet, geotiff.js, Three.js and the fonts are loaded from CDNs.
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## 📁 Repository structure
 
@@ -82,9 +102,9 @@ Then open `http://localhost:8000/projects.html` in your browser.
 | `KHInterferenceTRIAL-Regular.otf` | Display font used on the landing page (trial licence). |
 | `logo.png` | Project logo. |
 | `CNAME` | Custom domain for GitHub Pages (`beyondrayfel.com`). |
-| `docs/img/` | Screenshots used in this README. |
+| `readme/` | Images used by this README: banner, divider, mission-geometry diagram and the screenshots. |
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## 🧭 Site navigation
 
@@ -107,7 +127,7 @@ flowchart LR
     classDef hero fill:#0d7f74,stroke:#5fe0d0,color:#fff,stroke-width:3px
 ```
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## 🗺️ `projects.html` in depth
 
@@ -145,7 +165,7 @@ Things worth knowing:
 - **Bilingual strings.** All interface text exists in English and Turkish. The screenshots in this README were captured with the Turkish strings; the tables below use the English labels, with the Turkish label in parentheses where a screenshot shows it.
 - **Everything runs client-side.** Nothing is uploaded; the only network traffic is tile/library/font downloads.
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ### Tab 1 · Route planner
 
@@ -185,11 +205,11 @@ Things worth knowing:
 | **Button bar** | bottom centre | Route editing, export, presets, Mission plan |
 | **Map** | background | NASA Mars map with all mission geometry |
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 1) Heading tape (top)
 
-![Heading tape](docs/img/01-pusula-seridi.png)
+![Heading tape](readme/01-pusula-seridi.png)
 
 A helmet-HUD style compass.
 
@@ -200,11 +220,11 @@ A helmet-HUD style compass.
   - **"Selected leg"**: the bearing of a leg you clicked in the Legs list (see below).
 - With no route it shows `—` and "Add a route for heading".
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 2) Left panel · Map layers
 
-![Map layers](docs/img/02-harita-katmanlari.png)
+![Map layers](readme/02-harita-katmanlari.png)
 
 | Control | What it does |
 |---|---|
@@ -233,7 +253,7 @@ A helmet-HUD style compass.
 
 > If a layer's tiles fail to load (8 failed tiles in a row), the panel shows "This layer's tiles are not loading; the ID may differ on this service. Pick another layer or enter a custom ID."
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 3) Left panel · Mission layers
 
@@ -252,7 +272,7 @@ Check boxes switch parts of the mission geometry on and off:
 
 The **Hide all / Show all** button at the top switches every layer at once.
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 4) Left panel · Locations
 
@@ -264,14 +284,14 @@ The time is `2 × distance ÷ speed + stop time`. A green ✓ means it fits insi
 
 Clicking a row flies the map to that site (zoom ≥ 11) and opens its popup. Clicking the base opens the habitat diagram.
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 5) The map
 
-![Range rings and sites](docs/img/03-menzil-halkalari.png)
+![Range rings and sites](readme/03-menzil-halkalari.png)
 
 <div align="center">
-<img src="docs/img/mission-geometry.svg" alt="Schematic of the D1 to D10 circles, base, shelters and science points" width="82%">
+<img src="readme/mission-geometry.svg" alt="Schematic of the D1 to D10 circles, base, shelters and science points" width="82%">
 <br><sub><b>Mission geometry, drawn to scale:</b> ten D circles around the landing zone, range rings around the base, and the shelters and science points.</sub>
 </div>
 
@@ -309,7 +329,7 @@ What you see on the map:
 | D9 | 15.6 km | **Emergency shelter 2 and forward depot.** Backup life support and fallback for long EVAs. |
 | D10 | 17.5 km | **Outer limit and reference point.** Widest ring: rover-supported exploration and comparison samples. |
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 6) The habitat diagram
 
@@ -334,11 +354,11 @@ flowchart LR
 
 Close it with the ✕ button, by clicking outside the box, or with **Esc**.
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 7) Right panel · Mission info
 
-![Mission info](docs/img/04-gorev-bilgisi.png)
+![Mission info](readme/04-gorev-bilgisi.png)
 
 This panel updates live while you build a route.
 
@@ -374,11 +394,11 @@ pie showData title O₂ budget of the example EVA (336 min usable)
 - Usable O₂: 8 h × 0.70 = 336 min → margin **336 − 287 = 49 min ✓**
 - Dose: 0.67 mSv/day ÷ 24 h × 287 min ≈ **0.13 mSv**
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 8) Right panel · Legs
 
-![Legs list](docs/img/05-bolumler.png)
+![Legs list](readme/05-bolumler.png)
 
 The **Legs** list breaks the route into segments. Each row shows *from → to*, the **bearing (degrees + compass name)**, the **length** and the **walking time**:
 
@@ -398,7 +418,7 @@ Point labels used in the list:
 | `D1 … Dn` | The route's final circle point (labelled with the circle number it lies on) |
 | `B1, B2 …` | Breakpoints (◆) you added by clicking the map |
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 9) How route drawing works
 
@@ -432,7 +452,7 @@ flowchart LR
 8. Optionally tick **Solar particle event** to see the worst-case dose.
 9. Press **Download JSON** to save the route.
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 10) Button bar (bottom)
 
@@ -467,7 +487,7 @@ flowchart LR
 
 </details>
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 #### 11) Mission plan (full-screen simulator)
 
@@ -503,7 +523,7 @@ flowchart LR
 > [!NOTE]
 > The model uses simple circular, coplanar orbits. Real dates can shift by a few weeks and the Venus swing-by path is schematic. Verify exact values with JPL Horizons.
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ### Tab 2 · 3D elevation view
 
@@ -511,7 +531,7 @@ The **3D elevation view** tab shows the Arcadia Planitia crater from an orbital 
 
 #### Control panel
 
-![3D control panel](docs/img/06-3d-kontrol-paneli.png)
+![3D control panel](readme/06-3d-kontrol-paneli.png)
 
 | Group | Control | What it does |
 |---|---|---|
@@ -524,13 +544,13 @@ The **3D elevation view** tab shows the Arcadia Planitia crater from an orbital 
 
 #### Flat view (Tilt 65°, relief 0)
 
-![3D flat view](docs/img/07-3d-duz-gorunum.png)
+![3D flat view](readme/07-3d-duz-gorunum.png)
 
 With relief at 0 the image lies flat and you see the crater floor and rim as a photograph. The orange ring is the crater centre; the cyan line is a **distance measurement** made by clicking two points. The box at the bottom-left follows the mouse and shows latitude, longitude, pixel coordinates and brightness (0–255) at the pointer.
 
 #### With illustrative relief
 
-![3D relief view](docs/img/08-3d-kabartma.png)
+![3D relief view](readme/08-3d-kabartma.png)
 
 Raising *Illustrative relief* lifts the surface according to image brightness, making the crater walls and surrounding terrain stand out.
 
@@ -556,7 +576,7 @@ Distances use the Mars 2000 sphere (radius 3396.19 km) and the image's geographi
 | Single click | Place a measurement point |
 | Hover | Latitude / longitude / pixel / brightness read-out (bottom-left) |
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## 🧮 Calculation model and assumptions
 
@@ -576,7 +596,7 @@ Distances use the Mars 2000 sphere (radius 3396.19 km) and the image's geographi
 | Default stop time | 25 min per circle |
 | Orbit model | Circular, coplanar orbits at 1 AU and 1.524 AU |
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## 📚 Data sources and technologies
 
@@ -592,7 +612,7 @@ Distances use the Mars 2000 sphere (radius 3396.19 km) and the image's geographi
 - [Three.js r128](https://threejs.org/): 3D viewer
 - Google Fonts: Inter, Fraunces, IBM Plex Mono
 
-<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
+<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
 
 ## 👥 Team and contact
 
