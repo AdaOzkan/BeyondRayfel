@@ -1,12 +1,34 @@
-# 🔴 Beyond Rayfel
+<div align="center">
 
-**A browser-based mission planning and visualization tool for a crewed surface mission to Arcadia Planitia, Mars.**
+<img src="docs/img/banner.svg" alt="Beyond Rayfel: Arcadia Planitia mission planner" width="100%">
 
-Beyond Rayfel is a static website: no server, no build step, no installation. Its core is **`projects.html`**, which lets you explore the landing area on a real NASA map, plan an astronaut walk or rover route, check the oxygen margin and radiation dose of that route, simulate the whole Earth → Mars → Earth mission timeline, and fly over the crater in 3D.
+<br>
 
-🌐 Live site: **https://beyondrayfel.com** (GitHub Pages, configured via the `CNAME` file)
+![Live](https://img.shields.io/badge/LIVE-beyondrayfel.com-0d7f74?style=for-the-badge&logo=githubpages&logoColor=white)
+![No build](https://img.shields.io/badge/BUILD%20STEP-none-c2562b?style=for-the-badge)
+![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-199900?style=for-the-badge&logo=leaflet&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-r128-000000?style=for-the-badge&logo=threedotjs&logoColor=white)
+![NASA](https://img.shields.io/badge/DATA-NASA%2FJPL%20Mars%20Trek-0b3d91?style=for-the-badge&logo=nasa&logoColor=white)
 
----
+**[🌐 Live site](https://beyondrayfel.com)** &nbsp;·&nbsp; **[🚀 Quick start](#-quick-start)** &nbsp;·&nbsp; **[🗺️ Route planner guide](#tab-1--route-planner)** &nbsp;·&nbsp; **[🧊 3D crater](#tab-2--3d-elevation-view)**
+
+</div>
+
+<br>
+
+> [!NOTE]
+> **Beyond Rayfel** is a static website (no server, no build step, no installation) for a crewed surface mission to **Arcadia Planitia, Mars**. Its core is **`projects.html`**: explore the landing area on a real NASA map, plan an astronaut walk or rover route, check its **oxygen margin and radiation dose**, simulate the whole **Earth → Mars → Earth** timeline, and fly over the crater in **3D**.
+
+<div align="center">
+
+| 🗺️ **Route planner** | 🫁 **O₂ and dose** | 🛰️ **Mission plan** | 🧊 **3D crater** |
+|:---:|:---:|:---:|:---:|
+| Drag points around 10 range circles, add breakpoints | 8 h supply, 30 % reserve, solar-storm ×5 | 3 flight profiles, 5 launch windows, animated orbits | Tilt, relief and a two-click ruler |
+| **10** D circles | **0.67** mSv/day | **600** mSv limit | **~5 m** / pixel |
+
+</div>
+
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## Table of contents
 
@@ -20,7 +42,7 @@ Beyond Rayfel is a static website: no server, no build step, no installation. It
 5. [Calculation model and assumptions](#-calculation-model-and-assumptions)
 6. [Data sources and technologies](#-data-sources-and-technologies)
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## 🚀 Quick start
 
@@ -37,11 +59,13 @@ python3 -m http.server 8000
 
 Then open `http://localhost:8000/projects.html` in your browser.
 
+> [!TIP]
 > **Why not just double-click the file (`file://`)?** The Thermal, Dust and Slope overlays load `.tif` files with `fetch`, and browsers block that on `file://`. Use any local HTTP server.
 
+> [!IMPORTANT]
 > **An internet connection is required.** Map tiles come from NASA/JPL Mars Trek; Leaflet, geotiff.js, Three.js and the fonts are loaded from CDNs.
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## 📁 Repository structure
 
@@ -60,7 +84,7 @@ Then open `http://localhost:8000/projects.html` in your browser.
 | `CNAME` | Custom domain for GitHub Pages (`beyondrayfel.com`). |
 | `docs/img/` | Screenshots used in this README. |
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## 🧭 Site navigation
 
@@ -73,11 +97,38 @@ When `index.html` opens, Mars appears with an intro animation and four nodes orb
 | Resources | `resources.html` |
 | Contact | `contact.html` |
 
----
+```mermaid
+flowchart LR
+    A(["🪐 index.html<br/>animated Mars"]):::home --> B["👥 team.html<br/>Team info"]
+    A --> C["🛰️ projects.html<br/>Project"]:::hero
+    A --> D["📚 resources.html<br/>Resources"]
+    A --> E["✉️ contact.html<br/>Contact"]
+    classDef home fill:#1b0d0b,stroke:#c2562b,color:#fff,stroke-width:2px
+    classDef hero fill:#0d7f74,stroke:#5fe0d0,color:#fff,stroke-width:3px
+```
+
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## 🗺️ `projects.html` in depth
 
 ### How the page is built
+
+```mermaid
+flowchart TB
+    subgraph SHELL["projects.html (tab bar + 2 iframes, one file, ~8.8 MB)"]
+      direction TB
+      T1["🗺️ Tab 1: Route planner<br/>(loads at start)"]:::a
+      T2["🧊 Tab 2: 3D elevation view<br/>(loads on first click)"]:::b
+    end
+    T1 --> L["Leaflet 1.9.4"]
+    T1 --> G["geotiff.js 2.1.3"]
+    T1 --> M[("NASA/JPL Mars Trek<br/>WMTS tiles")]
+    T1 --> TIF[("thermal.tif · dust.tif · slope.tif")]
+    T2 --> TH["Three.js r128"]
+    T2 --> IMG[("embedded orbital image<br/>~5 m/pixel")]
+    classDef a fill:#0d7f74,stroke:#5fe0d0,color:#fff
+    classDef b fill:#c2562b,stroke:#ffb347,color:#fff
+```
 
 `projects.html` is a thin **shell** (a tab bar plus two `<iframe>` elements). The two applications are stored inside the file as strings and are injected with `srcdoc`:
 
@@ -94,11 +145,37 @@ Things worth knowing:
 - **Bilingual strings.** All interface text exists in English and Turkish. The screenshots in this README were captured with the Turkish strings; the tables below use the English labels, with the Turkish label in parentheses where a screenshot shows it.
 - **Everything runs client-side.** Nothing is uploaded; the only network traffic is tile/library/font downloads.
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ### Tab 1 · Route planner
 
 #### Screen layout
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│  Route planner (Leaflet)  │  3D elevation view                      │ ← tabs
+├─────────────┬───────────────────────────────────────┬───────────────┤
+│ MAP LAYERS  │        ◂ 300 ····· 330 ····· N ▸      │ MISSION INFO  │
+│  Base       │               339° NNW                │  Distance     │
+│  Overlay    │               (heading tape)          │  Walking      │
+│  Opacity    │                                       │  Science stop │
+│  Custom ID  │                                       │  O₂ margin ✓  │
+│             │            ·  ·  D10                  │  Dose (EVA)   │
+│ MISSION     │         ·  ·  D5 ◍ BZ                 │  Return time  │
+│ LAYERS      │       ·  ⌂ ── LZ  ·                   │  Speed ▬▬●▬▬  │
+│  ☑ Shelters │         ·  ·  D1                      │  [Rover][Human]│
+│  ☑ Rings    │            ·    ◆ ── S2               │  Stop (min)   │
+│  ☑ D1–D10   │                                       │  ☐ Solar event│
+│  ☑ Grid     │                                       │  Progress ●▬▬ │
+│             │                                       │               │
+│ LOCATIONS   │                                       │ LEGS          │
+│  Base …     │                                       │  ⌂→C1  339°   │
+│  S2 … ✓/✗   │                                       │  C1→C2  14°   │
+├─────────────┴───────────────────────────────────────┴───────────────┤
+│ [Add breakpoint] [Undo] [Return to base] [Reset] [Download JSON]    │
+│ [Ice EVA] [Shelter area] [Mission plan]                             │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 | Area | Position | Purpose |
 |---|---|---|
@@ -108,7 +185,7 @@ Things worth knowing:
 | **Button bar** | bottom centre | Route editing, export, presets, Mission plan |
 | **Map** | background | NASA Mars map with all mission geometry |
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 1) Heading tape (top)
 
@@ -123,7 +200,7 @@ A helmet-HUD style compass.
   - **"Selected leg"**: the bearing of a leg you clicked in the Legs list (see below).
 - With no route it shows `—` and "Add a route for heading".
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 2) Left panel · Map layers
 
@@ -132,11 +209,12 @@ A helmet-HUD style compass.
 | Control | What it does |
 |---|---|
 | **Base** | The map underneath. Choices: *Viking color mosaic (232 m)* and *MOLA color topography (463 m)*. |
-| **Overlay** | A second layer drawn on top of the base (see table below). |
+| **Overlay** | A second layer drawn on top of the base (see the expandable list below). |
 | **Opacity** | Overlay transparency, 0–100 (default 55). |
 | **Custom layer ID** | Add your own layer. Paste a tile URL (`…/z/y/x.png`) or a Mars Trek layer ID, type the **maximum native zoom** in the small number box (1–12, default 7), and press **Add**. It appears in the Overlay list as "Custom: …" and is selected immediately. |
 
-**Overlay options**
+<details>
+<summary><b>🧩 Overlay options (click to expand)</b></summary>
 
 | Overlay | Source / note |
 |---|---|
@@ -151,9 +229,11 @@ A helmet-HUD style compass.
 | Slope | Local `slope.tif` (terrain slope) |
 | Exploration Zones – NASA EMC (100 km circles) | Candidate human-landing zones from NASA's 2015 workshop (Jezero, Gale, Mawrth Vallis, Oxia Planum, Eberswalde, Melas Chasma, Arcadia Planitia), each drawn as a 100 km circle. Selecting it zooms out to a global view. Positions are approximate. |
 
+</details>
+
 > If a layer's tiles fail to load (8 failed tiles in a row), the panel shows "This layer's tiles are not loading; the ID may differ on this service. Pick another layer or enter a custom ID."
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 3) Left panel · Mission layers
 
@@ -172,7 +252,7 @@ Check boxes switch parts of the mission geometry on and off:
 
 The **Hide all / Show all** button at the top switches every layer at once.
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 4) Left panel · Locations
 
@@ -184,11 +264,16 @@ The time is `2 × distance ÷ speed + stop time`. A green ✓ means it fits insi
 
 Clicking a row flies the map to that site (zoom ≥ 11) and opens its popup. Clicking the base opens the habitat diagram.
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 5) The map
 
 ![Range rings and sites](docs/img/03-menzil-halkalari.png)
+
+<div align="center">
+<img src="docs/img/mission-geometry.svg" alt="Schematic of the D1 to D10 circles, base, shelters and science points" width="82%">
+<br><sub><b>Mission geometry, drawn to scale:</b> ten D circles around the landing zone, range rings around the base, and the shelters and science points.</sub>
+</div>
 
 What you see on the map:
 
@@ -224,7 +309,7 @@ What you see on the map:
 | D9 | 15.6 km | **Emergency shelter 2 and forward depot.** Backup life support and fallback for long EVAs. |
 | D10 | 17.5 km | **Outer limit and reference point.** Widest ring: rover-supported exploration and comparison samples. |
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 6) The habitat diagram
 
@@ -235,9 +320,21 @@ Click the **⌂ Main shelter** marker (or its row in the Locations list) to open
 - the **subsurface ice source** feeding **water electrolysis**, the **hydrogen storage tank**, the **hydrogen fuel cell and heating system**, and the **heating loop** (hot water/air),
 - a text explanation of each step: ice → electrolysis (H₂ + O₂) → fuel cell (heat + electricity) → heat distribution, with clean water and breathable oxygen as by-products.
 
+```mermaid
+flowchart LR
+    ICE["🧊 Subsurface ice"] --> EL["⚡ Electrolysis<br/>H₂O → H₂ + O₂"]
+    SOL["☀️ Solar power"] --> EL
+    EL --> TANK["🛢️ H₂ storage tank"]
+    EL --> O2["🫁 Breathable O₂"]
+    TANK --> FC["🔥 H₂ fuel cell"]
+    FC --> HEAT["♨️ Heating loop<br/>(hot water / air)"]
+    FC --> PWR["💡 Electricity"]
+    FC --> H2O["💧 Clean water"]
+```
+
 Close it with the ✕ button, by clicking outside the box, or with **Esc**.
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 7) Right panel · Mission info
 
@@ -262,6 +359,13 @@ This panel updates live while you build a route.
 | **Progress along route** | Slider that moves a red marker along the route. The heading tape and *Emergency return* follow this marker. |
 | **Route circles (1–10)** | How many circles the route visits (default 5). Changing it rebuilds the route. |
 
+```mermaid
+pie showData title O₂ budget of the example EVA (336 min usable)
+    "Walking (162 min)" : 162
+    "Science stops (125 min)" : 125
+    "Margin left (49 min)" : 49
+```
+
 **Worked example (from the screenshot)**: 8088 m at 3 km/h with 5 circle stops of 25 min.
 
 - Walking: 8088 m ÷ 3000 m/h ≈ **162 min**
@@ -270,7 +374,7 @@ This panel updates live while you build a route.
 - Usable O₂: 8 h × 0.70 = 336 min → margin **336 − 287 = 49 min ✓**
 - Dose: 0.67 mSv/day ÷ 24 h × 287 min ≈ **0.13 mSv**
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 8) Right panel · Legs
 
@@ -294,7 +398,7 @@ Point labels used in the list:
 | `D1 … Dn` | The route's final circle point (labelled with the circle number it lies on) |
 | `B1, B2 …` | Breakpoints (◆) you added by clicking the map |
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 9) How route drawing works
 
@@ -303,6 +407,18 @@ A route is built from **three kinds of points**:
 1. **Start ⌂**: always the main shelter. It cannot be moved.
 2. **Circle points C1…Cn**: one point on each of the first *n* D circles. By default they sit north of the LZ (C1 starts at 45° bearing on the smallest circle). **Drag a C point and it slides only along its own circle**, so its distance from the LZ stays fixed and you choose the direction. Circles beyond *n* show **semi-transparent "ghost" C points** that you can also drag; their positions are remembered and used when you raise the circle count.
 3. **Breakpoints ◆**: free points you add by clicking the map. With **Add breakpoint** on, a click inserts the ◆ between the two circle points whose circles it falls between (decided by its distance from the LZ), and on the nearest segment of that stretch. Drag a ◆ anywhere; click it and press **Delete** to remove it.
+
+```mermaid
+flowchart LR
+    A["1️⃣ Pick circle count<br/>(1–10)"] --> B["2️⃣ Drag C points<br/>along their circles"]
+    B --> C["3️⃣ Click map for ◆<br/>or 'Add to route'"]
+    C --> D["4️⃣ Set speed<br/>+ stop time"]
+    D --> E{"5️⃣ O₂ margin<br/>≥ 0 ?"}
+    E -- "❌ red" --> B
+    E -- "✅ green" --> F["6️⃣ Return to base<br/>+ round-trip check"]
+    F --> G["7️⃣ Scrub progress<br/>8️⃣ Solar event?"]
+    G --> H["9️⃣ Download JSON"]
+```
 
 **Step by step**
 
@@ -316,7 +432,7 @@ A route is built from **three kinds of points**:
 8. Optionally tick **Solar particle event** to see the worst-case dose.
 9. Press **Download JSON** to save the route.
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 10) Button bar (bottom)
 
@@ -331,7 +447,8 @@ A route is built from **three kinds of points**:
 | **Shelter area** | Zooms the map to fit all shelters and science points. |
 | **Mission plan** | Opens the Earth → Arcadia Planitia → Earth mission simulator. |
 
-**`marswalk-rota.json` format**
+<details>
+<summary><b>💾 <code>marswalk-rota.json</code> format (click to expand)</b></summary>
 
 ```json
 {
@@ -348,11 +465,25 @@ A route is built from **three kinds of points**:
 
 (Coordinates here are illustrative; the real file contains your own route.) Point `type` values are `base`, `ring`, `end`, `bend` and `ret`.
 
----
+</details>
+
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 #### 11) Mission plan (full-screen simulator)
 
 The **Mission plan** button opens a full-screen window: *"Mission plan: Earth → Arcadia Planitia → Earth"*.
+
+```mermaid
+flowchart LR
+    L["🚀 Launch<br/>KSC LC-39A"] --> TR["🛰️ Transit out<br/>259 · 180 · 200 days"]
+    TR --> SF["🔴 Surface stay<br/>Arcadia Planitia"]
+    SF --> RT["🛰️ Return<br/>259 · 180 · 370 days"]
+    RT --> EA["🌍 Earth"]
+    classDef s fill:#c2562b,stroke:#ffb347,color:#fff
+    class SF s
+```
+
+<sub>The three numbers are the three profiles: low energy, fast transit and short stay (Venus swing-by).</sub>
 
 **Inputs**
 
@@ -369,9 +500,10 @@ The **Mission plan** button opens a full-screen window: *"Mission plan: Earth �
 - **Plan items:** a numbered explanation covering the launch (Kennedy Space Center LC‑39A, LEO assembly, trans-Mars injection, NASA Worldview for weather), transit time, the landing site (crater at about 46.62°N, 173.03°W, about −3.9 km elevation; why near-surface ice makes it attractive for ISRU), the return, **habitat pros and cons** (elevation and ice vs. weak winter solar power, CO₂ frost, dust storms, 4–24 min communication delay), research goals, survival requirements (O₂ about 0.84 kg/person/day, water recycling, nuclear + solar power, radiation shelter), and how the project fits the challenge criteria.
 - **Back to map** (or **Esc**) closes the window.
 
+> [!NOTE]
 > The model uses simple circular, coplanar orbits. Real dates can shift by a few weeks and the Venus swing-by path is schematic. Verify exact values with JPL Horizons.
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ### Tab 2 · 3D elevation view
 
@@ -402,7 +534,8 @@ With relief at 0 the image lies flat and you see the crater floor and rim as a p
 
 Raising *Illustrative relief* lifts the surface according to image brightness, making the crater walls and surrounding terrain stand out.
 
-> ⚠️ **This relief is not measured elevation.** It is derived from image brightness (shadows read as low). Use it only to read shapes. For real elevation analysis use MOLA/HRSC DEM data.
+> [!WARNING]
+> **This relief is not measured elevation.** It is derived from image brightness (shadows read as low). Use it only to read shapes. For real elevation analysis use MOLA/HRSC DEM data.
 
 #### Measuring
 
@@ -423,7 +556,7 @@ Distances use the Mars 2000 sphere (radius 3396.19 km) and the image's geographi
 | Single click | Place a measurement point |
 | Hover | Latitude / longitude / pixel / brightness read-out (bottom-left) |
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## 🧮 Calculation model and assumptions
 
@@ -443,7 +576,7 @@ Distances use the Mars 2000 sphere (radius 3396.19 km) and the image's geographi
 | Default stop time | 25 min per circle |
 | Orbit model | Circular, coplanar orbits at 1 AU and 1.524 AU |
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## 📚 Data sources and technologies
 
@@ -459,7 +592,7 @@ Distances use the Mars 2000 sphere (radius 3396.19 km) and the image's geographi
 - [Three.js r128](https://threejs.org/): 3D viewer
 - Google Fonts: Inter, Fraunces, IBM Plex Mono
 
----
+<div align="center"><img src="docs/img/divider.svg" alt="" width="70%"></div>
 
 ## 👥 Team and contact
 
