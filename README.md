@@ -1,619 +1,295 @@
-<div align="center">
+# Marswalk HUD – Arcadia Planitia
 
-<img src="readme/banner.svg" alt="Beyond Rayfel: Arcadia Planitia mission planner" width="100%">
+Mars'ta, **Arcadia Planitia** bölgesindeki bir kratere inen mürettebat için hazırlanmış, tarayıcıda çalışan bir **EVA (yüzey yürüyüşü) planlama arayüzü**. Tek bir HTML dosyasından (`projects_patched9.html`) oluşur ve iki sekme içerir:
 
-<br>
+1. **Rota planlayıcı (Leaflet):** NASA Mars Trek katmanları üzerinde rota çizin; mesafe, yol süresi, O₂ marjı ve radyasyon dozunu anlık görün.
+2. **3B yükseklik görünümü:** Aynı krateri, görüntü parlaklığından türetilmiş yaklaşık bir kabartmayla 3B inceleyin; aynı rotayı orada da düzenleyin.
 
-![Live](https://img.shields.io/badge/LIVE-beyondrayfel.com-0d7f74?style=for-the-badge&logo=githubpages&logoColor=white)
-![No build](https://img.shields.io/badge/BUILD%20STEP-none-c2562b?style=for-the-badge)
-![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-199900?style=for-the-badge&logo=leaflet&logoColor=white)
-![Three.js](https://img.shields.io/badge/Three.js-r128-000000?style=for-the-badge&logo=threedotjs&logoColor=white)
-![NASA](https://img.shields.io/badge/DATA-NASA%2FJPL%20Mars%20Trek-0b3d91?style=for-the-badge&logo=nasa&logoColor=white)
+İki sekme **canlı eşleşir**: birinde çizdiğiniz rota diğerine aktarılır.
 
-**[🌐 Live site](https://beyondrayfel.com)** &nbsp;·&nbsp; **[🚀 Quick start](#-quick-start)** &nbsp;·&nbsp; **[🗺️ Route planner guide](#tab-1--route-planner)** &nbsp;·&nbsp; **[🧊 3D crater](#tab-2--3d-elevation-view)**
+> Bu README yeni sürüme (`projects_patched9.html`) göre yazılmıştır. Arayüz TR/EN dil düğmesini destekler; aşağıdaki isimler İngilizce arayüz adlarıdır, Türkçe karşılıkları parantez içinde verilmiştir.
 
-</div>
+---
 
-<br>
+## İçindekiler
 
-> [!NOTE]
-> **Beyond Rayfel** is a static website (no server, no build step, no installation) for a crewed surface mission to **Arcadia Planitia, Mars**. Its core is **`projects.html`**: explore the landing area on a real NASA map, plan an astronaut walk or rover route, check its **oxygen margin and radiation dose**, simulate the whole **Earth → Mars → Earth** timeline, and fly over the crater in **3D**.
+- [Hızlı başlangıç](#hızlı-başlangıç)
+- [Nasıl çalışır?](#nasıl-çalışır)
+- [Sekme 1: Rota planlayıcı](#sekme-1-rota-planlayıcı)
+  - [Neden düz rota değil de daireler?](#neden-düz-rota-değil-de-daireler)
+  - [Rota oluşturma](#rota-oluşturma)
+  - [Mission info paneli ve hesaplar](#mission-info-paneli-ve-hesaplar)
+  - [Harita katmanları](#harita-katmanları)
+  - [Kaskta pusula şeridi](#kaskta-pusula-şeridi)
+  - [Mission plan (Dünya → Mars → Dünya)](#mission-plan-dünya--mars--dünya)
+  - [Barınak (habitat) şeması](#barınak-habitat-şeması)
+- [Sekme 2: 3B yükseklik görünümü](#sekme-2-3b-yükseklik-görünümü)
+- [Sabitler ve varsayımlar](#sabitler-ve-varsayımlar)
+- [Dışa aktarma (JSON)](#dışa-aktarma-json)
+- [Bilinen sınırlar](#bilinen-sınırlar)
+- [Veri kaynakları](#veri-kaynakları)
 
-<div align="center">
+---
 
-| 🗺️ **Route planner** | 🫁 **O₂ and dose** | 🛰️ **Mission plan** | 🧊 **3D crater** |
-|:---:|:---:|:---:|:---:|
-| Drag points around 10 range circles, add breakpoints | 8 h supply, 30 % reserve, solar-storm ×5 | 3 flight profiles, 5 launch windows, animated orbits | Tilt, relief and a two-click ruler |
-| **10** D circles | **0.67** mSv/day | **600** mSv limit | **~5 m** / pixel |
+## Hızlı başlangıç
 
-</div>
+1. `projects_patched9.html` dosyasını bir tarayıcıda açın (derleme veya sunucu gerekmez).
+2. **İnternet bağlantısı gerekir.** Leaflet, geotiff.js, three.js, yazı tipleri ve Mars Trek harita karoları (tiles) CDN/NASA üzerinden yüklenir.
+3. İlk açılışta **Route planner (Leaflet)** sekmesi gelir. Haritaya tıklayarak rota oluşturun veya alt çubuktaki **Ice EVA** düğmesiyle hazır bir buz sondajı rotası yükleyin.
+4. Üstteki **3D elevation view** sekmesine geçtiğinizde kısa bir bilgi kutusu çıkar: 3B kabartmanın ölçülmüş yükseklik değil, görüntüdeki gölgelenmeden çıkarılan **yaklaşık** bir kabartma olduğunu söyler.
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+Mars Trek'in varsayılan GeoTIFF dosyaları bu krater için 3B görünüm sunmadığından kabartma, projede geliştirilen kendi yöntemle üretilir (bkz. [3B bölümü](#sekme-2-3b-yükseklik-görünümü)).
 
-## 📸 Gallery
+---
 
-<div align="center">
+## Nasıl çalışır?
 
-<table>
-<tr>
-<td width="50%" align="center"><img src="readme/03-menzil-halkalari.png" alt="D1 to D10 circles over the Viking map"><br><sub><b>Route planner:</b> D1–D10 circles, shelters and science points on the Viking map</sub></td>
-<td width="50%" align="center"><img src="readme/07-3d-duz-gorunum.png" alt="3D crater, flat view with a distance measurement"><br><sub><b>3D crater:</b> flat view with a two-click distance measurement</sub></td>
-</tr>
-<tr>
-<td align="center"><img src="readme/08-3d-kabartma.png" alt="3D crater with illustrative relief"><br><sub><b>3D crater:</b> illustrative relief (brightness-based, not real elevation)</sub></td>
-<td align="center"><img src="readme/04-gorev-bilgisi.png" alt="Mission info panel" width="55%"><br><sub><b>Mission info:</b> distance, O₂ margin, dose and speed presets</sub></td>
-</tr>
-</table>
+![Mimari diyagram](docs/images/arch-diagram.png)
 
-</div>
+- Dosya bir **kabuk sayfa** ve onun içindeki **iki `iframe`** (`f1`: Rota planlayıcı, `f2`: 3B görünüm) olarak yapılandırılmıştır. İki sayfanın kodu kabuğun içine gömülüdür; her sekme ilk açıldığında yüklenir.
+- Sekmeler arası eşleşme `window.postMessage` ile yapılır. Bir sekmede rota değiştiğinde durum (`n`, `HP`, `items`, hız, durak süresi, SPE, O₂ tabanı) kabuğa gönderilir, kabuk de diğer sekmeye iletir. Böylece iki sekme aynı rotayı gösterir.
+- Aynı hesap modeli iki sekmede de kullanılır:
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+![Hesap hattı](docs/images/calc-pipeline.png)
 
-## Table of contents
+---
 
-1. [Gallery](#-gallery)
-2. [Quick start](#-quick-start)
-3. [Repository structure](#-repository-structure)
-4. [Site navigation](#-site-navigation)
-5. [`projects.html` in depth](#%EF%B8%8F-projectshtml-in-depth)
-   - [How the page is built](#how-the-page-is-built)
-   - [Tab 1: Route planner](#tab-1--route-planner)
-   - [Tab 2: 3D elevation view](#tab-2--3d-elevation-view)
-6. [Calculation model and assumptions](#-calculation-model-and-assumptions)
-7. [Data sources and technologies](#-data-sources-and-technologies)
+## Sekme 1: Rota planlayıcı
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+Harita, **Leaflet 1.9.4** ve **EPSG:4326** (enlem/boylam) koordinat sistemiyle çalışır. Başlangıç görünümü Arcadia Planitia'dadır (46,6°K, 173°B).
 
-## 🚀 Quick start
+![D1–D10 daireleri](docs/images/map-d1-d10-rings.png)
 
-### Online
-Open `https://beyondrayfel.com`, then click the **Project** node on the home page.
+Haritadaki ana noktalar:
 
-### Run locally
-
-```bash
-git clone https://github.com/AdaOzkan/BeyondRayfel.git
-cd BeyondRayfel
-python3 -m http.server 8000
-```
-
-Then open `http://localhost:8000/projects.html` in your browser.
-
-> [!TIP]
-> **Why not just double-click the file (`file://`)?** The Thermal, Dust and Slope overlays load `.tif` files with `fetch`, and browsers block that on `file://`. Use any local HTTP server.
-
-> [!IMPORTANT]
-> **An internet connection is required.** Map tiles come from NASA/JPL Mars Trek; Leaflet, geotiff.js, Three.js and the fonts are loaded from CDNs.
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-## 📁 Repository structure
-
-| File | Description |
-|---|---|
-| `index.html` | Landing page: an animated Mars with four nodes (Team info, Project, Resources, Contact). |
-| **`projects.html`** | **The main application.** A two-tab shell containing the Route planner (Leaflet) and the 3D crater viewer (Three.js). Everything is embedded in this one file. |
-| `team.html` | Team information. |
-| `resources.html` | Resources and references. |
-| `contact.html` | Contact page. |
-| `404.html` | "Danger Zone" error page. |
-| `thermal.tif`, `dust.tif`, `slope.tif` | Local GeoTIFF overlays for the map (about 16.6 MB, 12.5 MB and 22.6 MB). |
-| `Nasanın insanlı mars görevleri için önerdiği yerler.xml` | Metadata of the NASA EMC "Exploration Zones" layer (metadata only, no geometry). |
-| `KHInterferenceTRIAL-Regular.otf` | Display font used on the landing page (trial licence). |
-| `logo.png` | Project logo. |
-| `CNAME` | Custom domain for GitHub Pages (`beyondrayfel.com`). |
-| `readme/` | Images used by this README: banner, divider, mission-geometry diagram and the screenshots. |
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-## 🧭 Site navigation
-
-When `index.html` opens, Mars appears with an intro animation and four nodes orbit it:
-
-| Node | Opens |
-|---|---|
-| Team info | `team.html` |
-| **Project** | **`projects.html`** |
-| Resources | `resources.html` |
-| Contact | `contact.html` |
-
-```mermaid
-flowchart LR
-    A(["🪐 index.html<br/>animated Mars"]):::home --> B["👥 team.html<br/>Team info"]
-    A --> C["🛰️ projects.html<br/>Project"]:::hero
-    A --> D["📚 resources.html<br/>Resources"]
-    A --> E["✉️ contact.html<br/>Contact"]
-    classDef home fill:#1b0d0b,stroke:#c2562b,color:#fff,stroke-width:2px
-    classDef hero fill:#0d7f74,stroke:#5fe0d0,color:#fff,stroke-width:3px
-```
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-## 🗺️ `projects.html` in depth
-
-### How the page is built
-
-```mermaid
-flowchart TB
-    subgraph SHELL["projects.html (tab bar + 2 iframes, one file, ~8.8 MB)"]
-      direction TB
-      T1["🗺️ Tab 1: Route planner<br/>(loads at start)"]:::a
-      T2["🧊 Tab 2: 3D elevation view<br/>(loads on first click)"]:::b
-    end
-    T1 --> L["Leaflet 1.9.4"]
-    T1 --> G["geotiff.js 2.1.3"]
-    T1 --> M[("NASA/JPL Mars Trek<br/>WMTS tiles")]
-    T1 --> TIF[("thermal.tif · dust.tif · slope.tif")]
-    T2 --> TH["Three.js r128"]
-    T2 --> IMG[("embedded orbital image<br/>~5 m/pixel")]
-    classDef a fill:#0d7f74,stroke:#5fe0d0,color:#fff
-    classDef b fill:#c2562b,stroke:#ffb347,color:#fff
-```
-
-`projects.html` is a thin **shell** (a tab bar plus two `<iframe>` elements). The two applications are stored inside the file as strings and are injected with `srcdoc`:
-
-| Tab | What it is | Technology |
+| Nokta | Konum | Not |
 |---|---|---|
-| **Route planner (Leaflet)** | 2D map, shelters, science points, range rings, route drawing, O₂ and dose calculator, mission-timeline simulator | Leaflet 1.9.4, geotiff.js 2.1.3, Canvas 2D |
-| **3D elevation view** | Georeferenced 3D viewer of the Arcadia Planitia crater | Three.js r128, WebGL |
+| Ana sığınak (üs) ⌂ | 46,560°K 173,005°B | Rotanın her zaman başladığı yer; tıklayınca [habitat şeması](#barınak-habitat-şeması) açılır |
+| İniş bölgesi (LZ) | 46,56126°K 173,03432°B | D1–D10 dairelerinin merkezi |
+| İniş noktası | 46,560°K 173,00468°B | Üssün hemen yanında |
+| Buz sondaj noktası (BZ) | 46,695°K 173,005°B | Üsten 8 km halkası üzerinde |
+| Acil sığınak 2 (S2) | 46,620°K 172,620°B | İleri mesafeli acil sığınak |
+| Hidratlı mineral / krater (KR) | 46,510°K 172,515°B | CRISM işareti, HiRISE kaya haritası, ~3 km yarıçaplı dairesel alan |
 
-Things worth knowing:
+Her noktanın üzerine tıklayınca açıklama ve **Add to route** (rotaya ekle) düğmesi çıkar. Sol paneldeki **Locations** listesinden bir satıra tıklarsanız harita o noktaya uçar ve gidiş-dönüş yürüme süresi (hız ve durak süresine göre) görünür.
 
-- **Lazy loading.** Only the Route planner loads at start. The 3D tab loads the first time you click it, because it carries an embedded orbital image (this is why the file is about 8.8 MB).
-- **Each tab keeps its state** when you switch away and back. Switching back only triggers a resize so the map redraws correctly.
-- **Responsive layout.** On narrow screens the side panels shrink and the heading tape moves to the bottom; in the 3D tab the control panel moves below the view.
-- **Bilingual strings.** All interface text exists in English and Turkish. The screenshots in this README were captured with the Turkish strings; the tables below use the English labels, with the Turkish label in parentheses where a screenshot shows it.
-- **Everything runs client-side.** Nothing is uploaded; the only network traffic is tile/library/font downloads.
+### Neden düz rota değil de daireler?
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+![Neden daireler](docs/images/ui-why-circles-note.png)
 
-### Tab 1 · Route planner
+Tek bir sabit rota tanımlanmadı. Bunun yerine iniş bölgesi (LZ) merkezli, yarıçapları kabaca eşit adımlarla büyüyen **10 daire (D1–D10)** çizildi. Mars'ta koşullar anlık değişir: toz ve kum fırtınaları bir yolu kapatabilir veya değiştirebilir. Daireler sayesinde astronotun her zaman seçeneği olur; nokta dairenin kenarında veya içinde serbestçe kayabilir, yol bir engelin etrafından dolanıp LZ'den bilinen bir uzaklıkta kalabilir. Kendi yolunu çizmek isteyenler için ayrıca rota planlayıcı vardır.
 
-#### Screen layout
+Daire yarıçapları LZ'den (hesaplanan değerler):
 
-```text
-┌─────────────────────────────────────────────────────────────────────┐
-│  Route planner (Leaflet)  │  3D elevation view                      │ ← tabs
-├─────────────┬───────────────────────────────────────┬───────────────┤
-│ MAP LAYERS  │        ◂ 300 ····· 330 ····· N ▸      │ MISSION INFO  │
-│  Base       │               339° NNW                │  Distance     │
-│  Overlay    │               (heading tape)          │  Walking      │
-│  Opacity    │                                       │  Science stop │
-│  Custom ID  │                                       │  O₂ margin ✓  │
-│             │            ·  ·  D10                  │  Dose (EVA)   │
-│ MISSION     │         ·  ·  D5 ◍ BZ                 │  Return time  │
-│ LAYERS      │       ·  ⌂ ── LZ  ·                   │  Speed ▬▬●▬▬  │
-│  ☑ Shelters │         ·  ·  D1                      │  [Rover][Human]│
-│  ☑ Rings    │            ·    ◆ ── S2               │  Stop (min)   │
-│  ☑ D1–D10   │                                       │  ☐ Solar event│
-│  ☑ Grid     │                                       │  Progress ●▬▬ │
-│             │                                       │               │
-│ LOCATIONS   │                                       │ LEGS          │
-│  Base …     │                                       │  ⌂→C1  339°   │
-│  S2 … ✓/✗   │                                       │  C1→C2  14°   │
-├─────────────┴───────────────────────────────────────┴───────────────┤
-│ [Add breakpoint] [Undo] [Return to base] [Reset] [Download JSON]    │
-│ [Ice EVA] [Shelter area] [Mission plan]                             │
-└─────────────────────────────────────────────────────────────────────┘
+| Daire | D1 | D2 | D3 | D4 | D5 | D6 | D7 | D8 | D9 | D10 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Yarıçap | 1,2 km | 2,4 km | 4,2 km | 6,2 km | 8,0 km | 9,9 km | 11,8 km | 13,7 km | 15,6 km | 17,5 km |
+
+Her dairenin üzerindeki **D** etiketine tıklayınca o halkada yapılacak işler açılır:
+
+| Daire | Konu |
+|---|---|
+| D1 | Ana sığınak (hab) çevresi: kurulum, yakın çevre keşfi, skafandr testi |
+| D2 | Toprak ve kaya analizi: regolit numuneleri, XRF/Raman, blok sayımı |
+| D3 | Krater morfolojisi ve topografyası: duvar, teras, eğim profili |
+| D4 | Mineral ve spektral analiz: hidratlı mineral doğrulaması |
+| D5 | **Buz sondajı:** GPR ile SHARAD yansımalarının doğrulanması, karot sondajı (ana ISRU hedefi) |
+| D6 | Buz–regolit tabakalaşması: ikinci GPR/sondaj hattı |
+| D7 | Volkanik birimler ve jeoloji: Arcadia Formasyonu / Amazonian lav birimleri |
+| D8 | Çevre ve radyasyon istasyonu: hava durumu istasyonu, dozimetre |
+| D9 | Acil sığınak 2 ve ileri depo: yedek O₂, su, gıda, haberleşme rölesi |
+| D10 | Dış sınır ve referans noktası: uzun menzilli rover/dron taraması, karşılaştırma numunesi |
+
+### Rota oluşturma
+
+Alt çubuktaki düğmeler:
+
+| Düğme | Ne yapar? |
+|---|---|
+| **Add breakpoint** (Kırılma noktası ekle) | Aç/kapa düğmesidir (varsayılan açık). Açıkken haritaya tıklamak, tıklanan yere en yakın rota bölümüne bir kırılma noktası (◆) ekler |
+| **Undo** (Geri al) | Son eklenen noktayı veya dönüşü geri alır |
+| **Return to base** (Üsse dön) | Rotanın sonuna ⌂ noktasını ekler |
+| **Reset route** (Rotayı sıfırla) | Rotayı sıfırlar; daire sayısı **Route circles** alanındaki değerdir |
+| **Download JSON** | Rotayı JSON olarak indirir (bkz. [Dışa aktarma](#dışa-aktarma-json)) |
+| **Ice EVA** | 5 daireli, üsse dönüşlü örnek bir buz sondajı rotası kurar ve haritayı sığınak bölgesine odaklar |
+| **Shelter area** | Haritayı tüm noktaları kapsayacak şekilde ortalar |
+| **Mission plan** | Dünya → Mars → Dünya görev planını açar |
+
+Kurallar:
+
+- Rota her zaman **ana sığınaktan (⌂)** başlar.
+- **Route circles (1–10)** kaç daireden geçileceğini belirler. Rotadaki daire noktaları **C1, C2…** diye adlanır. Her C noktası yalnızca kendi dairesi boyunca sürüklenir.
+- Rotada olmayan daireler için de soluk (hayalet) C noktaları gösterilir; daire sayısını artırınca rota bu konumları kullanır.
+- Haritaya tıklamak iki daire arasına bir **◆ kırılma noktası** ekler (**B1, B2…**). Kırılma noktası serbestçe taşınır; ◆'ye tıklayarak silebilirsiniz.
+- Bölümler (legs) **Legs** listesinde gösterilir: bölümün adı, pusula yönü, mesafe ve süre. Bir bölüme tıklarsanız o bölüm seçilir ve pusula o bölümün yönünü gösterir.
+
+![Bölüm listesi](docs/images/ui-legs-list.png)
+
+Örnekte `⌂ → C1` bölümü 983 m uzunluğunda, yönü 339° KKB'dir ve 3 km/h hızda 20 dk sürer.
+
+### Mission info paneli ve hesaplar
+
+Sağ paneldeki değerler rota değiştikçe anında güncellenir. Her hesabın yanındaki **i** düğmesi kullanılan formülü canlı değerlerle açar.
+
+![Mesafe modeli](docs/images/ui-mission-info-distance.png)
+
+**Mesafe.** Her bölümün uzunluğu Mars'ı küre kabul eden büyük daire (haversine) formülüyle hesaplanır ve toplanır:
+
+```
+a  = sin²(Δφ/2) + cos φ₁ · cos φ₂ · sin²(Δλ/2)
+dᵢ = 2R · asin(√a),   R = 3389,5 km
+D  = Σ dᵢ
 ```
 
-| Area | Position | Purpose |
-|---|---|---|
-| **Heading tape** | top centre | Compass bearing of the current route leg |
-| **Left panel** | left | Map layers, mission layers, locations list |
-| **Right panel** | right | Mission info (distance, time, O₂, dose), speed controls, route settings, legs |
-| **Button bar** | bottom centre | Route editing, export, presets, Mission plan |
-| **Map** | background | NASA Mars map with all mission geometry |
+Eğim hesaba katılmaz; gerçek yol biraz daha uzundur.
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+**Yol süresi ve bilimsel duruş.** Yol süresi `L / v`'dir (`v` hız kaydırıcısından). **Science stop**, rotadaki her daire noktasında (C ve D noktaları) **Stop duration** kadar (varsayılan 25 dk) durulduğunu varsayar: `N × tₛ`. Kırılma noktalarında durulmaz.
 
-#### 1) Heading tape (top)
+**O₂ marjı.** Kullanılabilir oksijen, 8 saatlik EVA'dan %30 yedek düşülerek bulunur ve yedek hiçbir zaman harcanmaz:
 
-![Heading tape](readme/01-pusula-seridi.png)
-
-A helmet-HUD style compass.
-
-- The big number is the **bearing in degrees plus a 16-point compass name** (for example `339° NNW`; the screenshot shows the Turkish abbreviation `KKB`). Bearings run 0–360° with north = 0°.
-- The tape shows a ±60° window around the current heading. Ticks are every 10°; labelled ticks are every 30° (`300`, `330`, `N`…). The orange triangle marks the current heading.
-- The caption next to the number says which heading you are looking at:
-  - **"Heading at progress point"**: the bearing of the leg the *Progress along route* slider is currently on.
-  - **"Selected leg"**: the bearing of a leg you clicked in the Legs list (see below).
-- With no route it shows `—` and "Add a route for heading".
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-#### 2) Left panel · Map layers
-
-![Map layers](readme/02-harita-katmanlari.png)
-
-| Control | What it does |
-|---|---|
-| **Base** | The map underneath. Choices: *Viking color mosaic (232 m)* and *MOLA color topography (463 m)*. |
-| **Overlay** | A second layer drawn on top of the base (see the expandable list below). |
-| **Opacity** | Overlay transparency, 0–100 (default 55). |
-| **Custom layer ID** | Add your own layer. Paste a tile URL (`…/z/y/x.png`) or a Mars Trek layer ID, type the **maximum native zoom** in the small number box (1–12, default 7), and press **Add**. It appears in the Overlay list as "Custom: …" and is selected immediately. |
-
-<details>
-<summary><b>🧩 Overlay options (click to expand)</b></summary>
-
-| Overlay | Source / note |
-|---|---|
-| None | Overlay off. |
-| Viking color mosaic (232 m) | Mars Trek WMTS |
-| MOLA color topography (463 m) | Mars Trek WMTS (elevation colour shading) |
-| THEMIS IR day (100 m) | Mars Trek WMTS (infrared, daytime) |
-| THEMIS IR night (100 m) | Mars Trek WMTS (infrared, night-time) |
-| Thermal | Local `thermal.tif` (GeoTIFF) |
-| Layer 3 | GeoTIFF fetched from Google Drive. If it cannot be read, a **Choose file** button appears so you can pick the downloaded file manually. |
-| Dust | Local `dust.tif` |
-| Slope | Local `slope.tif` (terrain slope) |
-| Exploration Zones – NASA EMC (100 km circles) | Candidate human-landing zones from NASA's 2015 workshop (Jezero, Gale, Mawrth Vallis, Oxia Planum, Eberswalde, Melas Chasma, Arcadia Planitia), each drawn as a 100 km circle. Selecting it zooms out to a global view. Positions are approximate. |
-
-</details>
-
-> If a layer's tiles fail to load (8 failed tiles in a row), the panel shows "This layer's tiles are not loading; the ID may differ on this service. Pick another layer or enter a custom ID."
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-#### 3) Left panel · Mission layers
-
-Check boxes switch parts of the mission geometry on and off:
-
-| Toggle | What it controls |
-|---|---|
-| Shelters & landing | Main shelter, landing point, Emergency shelter 2 |
-| Science points | Ice drilling point, Hydrated mineral / crater |
-| Range rings (from base) | Rings at 2, 4, 8, 16 and 20 km around the base |
-| Zone circles | The orange crater / mineral area circle |
-| D1–D10 circles (LZ-centered) | The ten colour-coded circles around the landing zone |
-| Labels | All permanent text labels (turn off to declutter) |
-| Lat/lon grid | Latitude/longitude lines; spacing adapts to zoom |
-| Route | The dashed route line |
-
-The **Hide all / Show all** button at the top switches every layer at once.
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-#### 4) Left panel · Locations
-
-A clickable list of the main sites. Each row shows the name, coordinates, **distance and bearing from the base**, and for every site farther than 100 m a **walking round-trip check**:
-
-> `walking round trip 3 h 41 min ✓` or `… ✗ rover`
-
-The time is `2 × distance ÷ speed + stop time`. A green ✓ means it fits inside the usable oxygen budget (5.6 h) at the **current speed and stop duration**; a red **✗ rover** means you would need the rover. The list recalculates whenever you move the speed or stop-duration controls.
-
-Clicking a row flies the map to that site (zoom ≥ 11) and opens its popup. Clicking the base opens the habitat diagram.
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-#### 5) The map
-
-![Range rings and sites](readme/03-menzil-halkalari.png)
-
-<div align="center">
-<img src="readme/mission-geometry.svg" alt="Schematic of the D1 to D10 circles, base, shelters and science points" width="82%">
-<br><sub><b>Mission geometry, drawn to scale:</b> ten D circles around the landing zone, range rings around the base, and the shelters and science points.</sub>
-</div>
-
-What you see on the map:
-
-| Element | Meaning |
-|---|---|
-| **⌂ Main shelter (base)** | Where every route starts. About 46.56°N, 173.005°W. **Click it to open the underground-habitat diagram.** |
-| **Landing point** | Dashed orange marker right next to the base. |
-| **LZ · Landing zone** | Centre of the D1–D10 circles, about 1.2 km west of the base. A dashed white line links it to the base and is labelled with the distance and bearing (`To base 1.2 km · 94° E`). |
-| **S2 · Emergency shelter 2** | Far-range backup shelter (about 46.62°N, 172.62°W). |
-| **BZ · Ice drilling point** | Ice-drilling science point on the 8 km ring (about 46.695°N, 173.005°W). |
-| **KR · Hydrated mineral / crater** | CRISM hydrated-mineral / ice signature with a HiRISE boulder map; shown as a dashed circular area. |
-| **D1 … D10 (coloured circles)** | Ten circles centred on the LZ, radii 1.2, 2.4, 4.2, 6.2, 8.0, 9.9, 11.8, 13.7, 15.6 and 17.5 km. Colour runs from cyan to red as distance grows. Each has a labelled chip (`D5 · 8,0 km`). |
-| **Thin grey dashed circles** | Range rings from the base at 2, 4, 8, 16 and 20 km (the 8 km ring is drawn in blue). |
-| **Grid** | Lat/lon lines at 5° → 0.5° → 0.05° → 0.01° spacing, depending on zoom. |
-
-**Popups**
-
-- **Site popup** (S2, BZ, KR, landing point): name, coordinates, distance and bearing from base, a short description, and an **Add to route** button that inserts that site into your route as a breakpoint.
-- **D-circle popup** (click a chip or a C marker): name, coordinates, distance to the LZ and circle radius, distance and bearing from the base, a one-line summary and a list of **planned science activities**.
-
-**What each D circle is for**
-
-| Circle | Radius | Purpose |
-|---|---|---|
-| D1 | 1.2 km | **Main shelter (habitat) zone.** Base set-up and near-field survey; the shortest, safest EVA ring. |
-| D2 | 2.4 km | **Soil and rock analysis.** Physical and chemical characterisation of regolith and boulders. |
-| D3 | 4.2 km | **Crater morphology and topography.** Walls, terraces, ridges and debris deposits. |
-| D4 | 6.2 km | **Mineral and spectral analysis.** Ground-truthing hydrated minerals and exposed-material signatures. |
-| D5 | 8.0 km | **Ice drilling.** The mission's main ISRU target: confirming subsurface water ice. |
-| D6 | 9.9 km | **Ice–regolith stratigraphy.** Terraced craters and viscous-flow-like features; a second GPR/drill line. |
-| D7 | 11.8 km | **Volcanic units and geology.** Field verification of Arcadia Formation / Amazonian lava units. |
-| D8 | 13.7 km | **Environment and radiation station.** Fixed station for local atmosphere and dose data. |
-| D9 | 15.6 km | **Emergency shelter 2 and forward depot.** Backup life support and fallback for long EVAs. |
-| D10 | 17.5 km | **Outer limit and reference point.** Widest ring: rover-supported exploration and comparison samples. |
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-#### 6) The habitat diagram
-
-Click the **⌂ Main shelter** marker (or its row in the Locations list) to open a full-screen schematic titled *"Mars Underground Habitat: New Entry and Renewable Hydrogen Heating System"*. It shows:
-
-- the **integrated entry module**: surface airlock door → pressurised entry tunnel → decontamination & action zone → inner pressure door,
-- a **light-transmitting glass area** and the cosmic-radiation hazard above ground,
-- the **subsurface ice source** feeding **water electrolysis**, the **hydrogen storage tank**, the **hydrogen fuel cell and heating system**, and the **heating loop** (hot water/air),
-- a text explanation of each step: ice → electrolysis (H₂ + O₂) → fuel cell (heat + electricity) → heat distribution, with clean water and breathable oxygen as by-products.
-
-```mermaid
-flowchart LR
-    ICE["🧊 Subsurface ice"] --> EL["⚡ Electrolysis<br/>H₂O → H₂ + O₂"]
-    SOL["☀️ Solar power"] --> EL
-    EL --> TANK["🛢️ H₂ storage tank"]
-    EL --> O2["🫁 Breathable O₂"]
-    TANK --> FC["🔥 H₂ fuel cell"]
-    FC --> HEAT["♨️ Heating loop<br/>(hot water / air)"]
-    FC --> PWR["💡 Electricity"]
-    FC --> H2O["💧 Clean water"]
+```
+O₂_kullanılabilir = 8 sa × (1 − 0,30) = 336 dk
+Marj = 336 − (yol süresi + durak süresi)
 ```
 
-Close it with the ✕ button, by clicking outside the box, or with **Esc**.
+![O₂ marjı modeli](docs/images/ui-o2-margin-model.png)
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+Bu örnekte rota 8088 m, 3 km/h hızda yol süresi 161,8 dk, 5 durak × 25 dk = 125 dk olduğundan marj **+49,2 dk ✓** çıkar.
 
-#### 7) Right panel · Mission info
+**O₂ margin basis** seçimi:
 
-![Mission info](readme/04-gorev-bilgisi.png)
+- **One way (straight out)**: yol süresi çizilen rota uzunluğu (`D`) üzerinden alınır.
+- **Round trip (same route back)**: son durağa kadar olan mesafe iki katına çıkarılır (`2 × son durağa mesafe`); aynı yoldan dönüş varsayılır.
 
-This panel updates live while you build a route.
+Marj negatifse kırmızı ✗ görünür ve "O₂ yetmiyor, … dk açık var" uyarısı çıkar.
 
-| Field | Description |
+![Negatif marj örneği](docs/images/ui-mission-info-negative-margin.png)
+
+Bu örnekte rota 22 420 m'dir (6 bölüm); 3 km/h'da yol süresi 448 dk, duruşlar 125 dk, marj **−238 dk ✗** olur. Aynı rota daha hızlı bir araçla veya kısaltılarak denenebilir.
+
+Hız etkisini görmek için, her dairenin ucuna gidip dönmenin (tek 25 dk duruşla) O₂ bütçesine sığıp sığmadığına bakın:
+
+![Daire erişim grafiği](docs/images/ring-reach-o2.png)
+
+3 km/h'da D5 ve ötesi, 5 km/h'da D8 ve ötesi tek EVA'ya sığmaz; 10 km/h'lik gezginle D10'a bile ulaşılır (bu grafik yukarıdaki formüllerle hesaplanmış, eğimsiz, düz çizgi varsayımlı bir tahmindir).
+
+**Diğer değerler:**
+
+| Değer | Hesap |
 |---|---|
-| **Cursor** | Latitude/longitude under the mouse pointer. |
-| **Distance** | Total route length in metres (great-circle / haversine). |
-| **Walking** | Time to cover that distance at the chosen speed. |
-| **Science stop** | Total time spent at circle points (`number of C/D points × stop duration`). |
-| **O₂ margin basis** | *One way (straight out)* counts the route as drawn; *Round trip (same route back)* doubles the distance up to the last outbound point. |
-| **O₂ margin** | Oxygen time left after the EVA. Green ✓ is safe; red ✗ means you run out. When negative, a warning gives the shortfall in minutes and tells you to shorten the route or reduce stop time. |
-| **Dose (EVA)** | Estimated radiation dose for the EVA, in mSv. |
-| **Emergency return** | Time to walk back to the base **from the current progress marker**. |
-| **Speed** | Slider, 1–15 km/h in 0.5 steps (default 3.0). |
-| **Rover / Human** | One-tap presets. **Rover** = 10 km/h (4 crew), **Human** = 5 km/h (walking). The active preset is highlighted. |
-| **Stop duration (min/circle)** | Time spent at each C/D point (0–90 min, default 25). |
-| **Solar particle event (×5 dose)** | When ticked, the dose is multiplied by 5 and a warning appears: *"shorten the EVA, return to the shelter."* |
-| **Progress along route** | Slider that moves a red marker along the route. The heading tape and *Emergency return* follow this marker. |
-| **Route circles (1–10)** | How many circles the route visits (default 5). Changing it rebuilds the route. |
+| **Dose (EVA)** | `0,67 mSv/gün ÷ 24 × toplam süre (saat)`. **Solar particle event (×5 dose)** işaretliyse ×5; ayrıca "EVA'yı kısaltın, sığınağa dönün" uyarısı çıkar |
+| **Emergency return** | İlerleme noktasından üsse kuş uçuşu mesafe ÷ güncel hız (dk) |
+| **Progress along route** | Rota boyunca bir "astronot" noktası gezdirir; acil dönüş süresi ve pusula bu noktaya göre güncellenir |
+| **Speed** | 1–15 km/h kaydırıcı. **Rover** düğmesi 10 km/h'ı (4 kişilik mürettebat), **Human** düğmesi 5 km/h'ı (ortalama yürüme) ayarlar; kaydırıcı sonra elle değiştirilebilir |
 
-```mermaid
-pie showData title O₂ budget of the example EVA (336 min usable)
-    "Walking (162 min)" : 162
-    "Science stops (125 min)" : 125
-    "Margin left (49 min)" : 49
-```
+### Harita katmanları
 
-**Worked example (from the screenshot)**: 8088 m at 3 km/h with 5 circle stops of 25 min.
+![Harita katmanları](docs/images/ui-map-layers.png)
 
-- Walking: 8088 m ÷ 3000 m/h ≈ **162 min**
-- Science stop: 5 × 25 = **125 min**
-- Total EVA time: 287 min
-- Usable O₂: 8 h × 0.70 = 336 min → margin **336 − 287 = 49 min ✓**
-- Dose: 0.67 mSv/day ÷ 24 h × 287 min ≈ **0.13 mSv**
+**Base** (altlık): Viking renkli mozaik (232 m) veya MOLA renkli topografya (463 m).
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+**Overlay** (üst katman), saydamlığı **Opacity** ile ayarlanır:
 
-#### 8) Right panel · Legs
-
-![Legs list](readme/05-bolumler.png)
-
-The **Legs** list breaks the route into segments. Each row shows *from → to*, the **bearing (degrees + compass name)**, the **length** and the **walking time**:
-
-- `⌂ → C1`: base to first circle, 983 m · 20 min, **339° NNW**
-- `C1 → C2`: 1296 m · 26 min, **14° NNE**
-- `C2 → C3`: 1960 m · 39 min, **0° N**
-- …
-
-Click a row to **select** that leg. The heading tape then shows that leg's bearing ("Selected leg") instead of following the progress slider. Move the progress slider to go back to following it.
-
-Point labels used in the list:
-
-| Label | Meaning |
+| Katman | Açıklama |
 |---|---|
-| `⌂` | Main shelter (start, or return point) |
-| `C1 … Cn` | Circle points; each one sits on its own D circle |
-| `D1 … Dn` | The route's final circle point (labelled with the circle number it lies on) |
-| `B1, B2 …` | Breakpoints (◆) you added by clicking the map |
+| None | Üst katman yok |
+| Viking, MOLA | Altlık seçenekleriyle aynı |
+| THEMIS IR day / night (100 m) | Mars Trek'ten kızılötesi mozaikler |
+| Thermal, Layer 3, Dust, Slope | Ekibin hazırladığı GeoTIFF katmanları (`thermal.tif`, `dust.tif`, `slope.tif` ve Google Drive'dan çekilen "Layer 3"). Dosya okunamazsa **Choose file** ile elle seçilebilir |
+| Exploration Zones – NASA EMC (100 km circles) | NASA keşif bölgesi önerileri, 100 km çaplı daireler (konumlar yaklaşık) |
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+Ayrıca **Custom layer ID** alanına bir Mars Trek katman kimliği veya `…/z/y/x.png` biçiminde karo adresi girerek kendi katmanınızı ekleyebilirsiniz. Katman karoları yüklenmezse bir uyarı çıkar.
 
-#### 9) How route drawing works
+**Mission layers** ile şunlar açılıp kapatılır: sığınaklar ve iniş noktası, bilim noktaları, menzil halkaları (üsten 2/4/8/16/20 km; 8 km halkası vurgulu), bölge daireleri, D1–D10 daireleri, etiketler, enlem/boylam ızgarası ve rota. **Hide all / Show all** hepsini tek tuşla gizler.
 
-A route is built from **three kinds of points**:
+### Kaskta pusula şeridi
 
-1. **Start ⌂**: always the main shelter. It cannot be moved.
-2. **Circle points C1…Cn**: one point on each of the first *n* D circles. By default they sit north of the LZ (C1 starts at 45° bearing on the smallest circle). **Drag a C point and it slides only along its own circle**, so its distance from the LZ stays fixed and you choose the direction. Circles beyond *n* show **semi-transparent "ghost" C points** that you can also drag; their positions are remembered and used when you raise the circle count.
-3. **Breakpoints ◆**: free points you add by clicking the map. With **Add breakpoint** on, a click inserts the ◆ between the two circle points whose circles it falls between (decided by its distance from the LZ), and on the nearest segment of that stretch. Drag a ◆ anywhere; click it and press **Delete** to remove it.
+![Pusula şeridi](docs/images/ui-compass-tape.png)
 
-```mermaid
-flowchart LR
-    A["1️⃣ Pick circle count<br/>(1–10)"] --> B["2️⃣ Drag C points<br/>along their circles"]
-    B --> C["3️⃣ Click map for ◆<br/>or 'Add to route'"]
-    C --> D["4️⃣ Set speed<br/>+ stop time"]
-    D --> E{"5️⃣ O₂ margin<br/>≥ 0 ?"}
-    E -- "❌ red" --> B
-    E -- "✅ green" --> F["6️⃣ Return to base<br/>+ round-trip check"]
-    F --> G["7️⃣ Scrub progress<br/>8️⃣ Solar event?"]
-    G --> H["9️⃣ Download JSON"]
-```
+Ekranın üstündeki şerit, kask HUD'u gibi çalışır. Seçili bölümün (yoksa ilerleme noktasındaki bölümün) yönünü derece ve 16 yönlü pusula adıyla gösterir (ör. `339° NNW`). Rota yoksa "Add a route for heading" yazar.
 
-**Step by step**
+### Mission plan (Dünya → Mars → Dünya)
 
-1. Choose the number of **Route circles** (1–10).
-2. **Drag the C points** around their circles to pick directions.
-3. Optionally **click the map** to add ◆ breakpoints (to avoid an obstacle, for example), or use **Add to route** in a site popup to go via the ice-drilling point, shelter 2 or the crater.
-4. Set **Speed** (or tap Rover / Human) and **Stop duration**.
-5. Check **O₂ margin**. If it is red, shorten the route, raise the speed or cut the stop time.
-6. Press **Return to base** to append the way home, and set *O₂ margin basis* to **Round trip** to verify the full excursion.
-7. Drag **Progress along route** to inspect headings and the emergency-return time at any point.
-8. Optionally tick **Solar particle event** to see the worst-case dose.
-9. Press **Download JSON** to save the route.
+**Mission plan** düğmesi, görev takvimini hesaplayan tam ekran bir pencere açar:
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+- **Profile:** düşük enerjili uzun kalış (259 gün geçiş), hızlı geçiş (~180 gün) veya kısa kalış (30 gün, Venüs geçişli, ~600 gün).
+- **Opposition:** Mars'ın Dünya'ya en yakın olduğu tarih (2029, 2031, 2033, 2035, 2037).
+- Çıktı: Kennedy Uzay Merkezi'nden kalkış, Mars'a varış, yüzeyde kalış, Mars'tan kalkış, Dünya'ya dönüş, toplam süre, karşıtlık mesafesi ve tahmini doz (600 mSv sınırı kontrol edilir).
+- **Mission day** kaydırıcısıyla, Dünya, Mars ve uzay aracının konumu bir yörünge animasyonunda izlenir.
+- Altta; kalkış, iniş yeri, yaşam yeri (artı/eksi), araştırma, hayatta kalma ve yarışma uyumu maddeleri listelenir.
 
-#### 10) Button bar (bottom)
+Model basit dairesel yörünge modelidir; gerçek tarihler birkaç hafta kayabilir ve Venüs geçişi şematiktir. Kesin değerler için JPL Horizons ile doğrulayın.
 
-| Button | What it does |
+### Barınak (habitat) şeması
+
+Haritada **ana sığınağa (⌂)** tıklayınca, yeraltı Mars sığınağının yeni giriş modülünü ve **hidrojenle ısıtma sistemini** anlatan bir şema açılır: yeraltı buzundan su → elektroliz (H₂ ve O₂) → hidrojen yakıt hücresi → ısıtma devresi, ayrıca hava kilidi, dekontaminasyon bölgesi ve iç basınç kapısı.
+
+---
+
+## Sekme 2: 3B yükseklik görünümü
+
+Kraterin yörünge görüntüsünü (yaklaşık 43,4 km K–G × 39,0 km D–B) three.js (r128) ile 3B bir yüzey olarak gösterir. Görüntü dosyanın içine gömülüdür.
+
+![Eğik görünümde daireler](docs/images/3d-tilted-circles.png)
+
+**Kabartma nasıl üretilir?** Mars Trek'in GeoTIFF'leri bu krater için 3B vermediğinden, görüntüdeki **parlaklık** yükseklik gibi kullanılır: gölgeler alçak, aydınlık yüzeyler yüksek sayılır. **Illustrative relief** kaydırıcısı bu etkiyi büyütür. Sonuç gerçek yükseklik **değildir**, yalnızca açıklayıcıdır.
+
+![Kabartma](docs/images/3d-relief.png)
+
+**Kontroller**
+
+| Kontrol | İşlev |
 |---|---|
-| **Add breakpoint** | Toggle (on by default). When on, clicking the map adds a ◆. When off, map clicks do nothing to the route. |
-| **Undo** | Removes the most recently added point. |
-| **Return to base** | Appends the main shelter as the final point (`⌂`). Does nothing if the route already ends there. |
-| **Reset route** | Restores the default route and C positions. |
-| **Download JSON** | Saves the route as `marswalk-rota.json` (format below). |
-| **Ice EVA** | One-click demo: builds a 5-circle route, adds the return to base and fits the view to the shelter area. |
-| **Shelter area** | Zooms the map to fit all shelters and science points. |
-| **Mission plan** | Opens the Earth → Arcadia Planitia → Earth mission simulator. |
+| **Tilt** | Kamerayı 0° (tepeden) – 90° arasında eğer |
+| **Illustrative relief** | Kabartma şiddeti (0 = düz) |
+| Fare | Sürükle: kaydır (eğikken döndür) · sağ tuşla sürükle: döndür · tekerlek: yakınlaştır |
+| **Markers and layers** | Krater merkezi, ızgara, D1–D10 daireleri, menzil halkaları, bölge dairesi, noktalar, rota ve etiketleri aç/kapat |
+| **Route planner** | Rota planlayıcı sekmesindeki aynı daireler ve rota; hız, durak süresi, O₂ tabanı ve SPE seçenekleri ve aynı O₂/doz hesabı |
+| **Click mode** (alt çubuk) | **Plan route**: araziye tıklayarak ◆ ekle (çift tıklayınca sil). **Measure**: iki nokta arasında ölçüm |
+| **Reset view** | Kamerayı sıfırlar |
 
-<details>
-<summary><b>💾 <code>marswalk-rota.json</code> format (click to expand)</b></summary>
+**Ölçüm aracı.** **Measure** modunda araziye iki nokta tıklayınca çizgi kabartmayı izler; mesafe, yön (kuzeyden), göreli yükseklik farkı, ortalama ve en yüksek eğim hesaplanır. Eğim, açıklayıcı kabartmadan türetilir, ölçülmüş yükseklikten değil.
 
-```json
-{
-  "landing_zone": { "lat": 46.56126, "lon": -173.03432 },
-  "waypoints": [
-    { "id": "base",        "type": "base", "lat": 46.56126, "lon": -173.03432 },
-    { "id": "C1",          "type": "ring", "lat": 46.5694,  "lon": -173.0381  },
-    { "id": "base_return", "type": "ret",  "lat": 46.56126, "lon": -173.03432 }
-  ],
-  "distance_m": 8088,
-  "source": "NASA/JPL Mars Trek"
-}
-```
+![Ölçüm profili](docs/images/3d-measure-profile.png)
 
-(Coordinates here are illustrative; the real file contains your own route.) Point `type` values are `base`, `ring`, `end`, `bend` and `ret`.
+---
 
-</details>
+## Sabitler ve varsayımlar
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-#### 11) Mission plan (full-screen simulator)
-
-The **Mission plan** button opens a full-screen window: *"Mission plan: Earth → Arcadia Planitia → Earth"*.
-
-```mermaid
-flowchart LR
-    L["🚀 Launch<br/>KSC LC-39A"] --> TR["🛰️ Transit out<br/>259 · 180 · 200 days"]
-    TR --> SF["🔴 Surface stay<br/>Arcadia Planitia"]
-    SF --> RT["🛰️ Return<br/>259 · 180 · 370 days"]
-    RT --> EA["🌍 Earth"]
-    classDef s fill:#c2562b,stroke:#ffb347,color:#fff
-    class SF s
-```
-
-<sub>The three numbers are the three profiles: low energy, fast transit and short stay (Venus swing-by).</sub>
-
-**Inputs**
-
-| Control | Options |
+| Parametre | Değer |
 |---|---|
-| **Profile** | **Low energy, long stay**: 259-day transit each way, with the surface stay derived from planetary alignment. **Fast transit**: about 180 days each way. **Short stay**: 200 days out, 30 days on the surface, 370 days back with a Venus swing-by (about 600 days total). |
-| **Opposition** (Mars closest to Earth) | 25 Mar 2029, 4 May 2031, 27 Jun 2033, **15 Sep 2035 (default)**, 19 Nov 2037. The launch date is computed relative to the chosen opposition. |
-| **Mission day** | Slider from day 0 to the end of the mission. |
+| Mars yarıçapı (R) | 3389,5 km |
+| EVA süresi / O₂ yedeği | 8 sa / %30 (kullanılabilir 336 dk) |
+| Varsayılan hız | 3 km/h (Rover: 10 km/h, Human: 5 km/h) |
+| Varsayılan duruş süresi | 25 dk / daire noktası |
+| Radyasyon | RAD ≈ 0,67 mSv/gün; SPE'de ×5 |
+| Uçuş dozu (mission plan) | 1,84 mSv/gün (geçişte), 0,67 mSv/gün (yüzeyde) |
+| Rota daire sayısı | 1–10 (varsayılan 5) |
+| Menzil halkaları | 2, 4, 8, 16, 20 km (üsten) |
 
-**Outputs**
+---
 
-- **Orbit animation (canvas):** the Sun, Earth's orbit (1 AU) and Mars's orbit (1.524 AU), Earth (blue), Mars (red) and the spacecraft. The full path is drawn dashed; the part flown so far is solid. Under it, the current **date**, the **phase** (*Earth→Mars transit*, *On the Mars surface (Arcadia Planitia)* or *Mars→Earth return*) and the current **Earth–Mars distance** in million km.
-- **Summary table:** Launch (KSC), Arrival at Mars, Surface stay, Departure from Mars, Return to Earth, Total mission, Earth–Mars distance at opposition (AU and million km), and **Estimated dose (flight + surface)** with a ✓ or ✗ against the 600 mSv limit.
-- **Plan items:** a numbered explanation covering the launch (Kennedy Space Center LC‑39A, LEO assembly, trans-Mars injection, NASA Worldview for weather), transit time, the landing site (crater at about 46.62°N, 173.03°W, about −3.9 km elevation; why near-surface ice makes it attractive for ISRU), the return, **habitat pros and cons** (elevation and ice vs. weak winter solar power, CO₂ frost, dust storms, 4–24 min communication delay), research goals, survival requirements (O₂ about 0.84 kg/person/day, water recycling, nuclear + solar power, radiation shelter), and how the project fits the challenge criteria.
-- **Back to map** (or **Esc**) closes the window.
+## Dışa aktarma (JSON)
 
-> [!NOTE]
-> The model uses simple circular, coplanar orbits. Real dates can shift by a few weeks and the Venus swing-by path is schematic. Verify exact values with JPL Horizons.
+**Download JSON** düğmesi `marswalk-rota.json` dosyasını indirir. Dosyada iniş bölgesi (`landing_zone`), rota noktaları (`waypoints`: kimlik, tür, enlem, boylam), toplam mesafe (`distance_m`) ve kaynak (`source`) alanları bulunur.
 
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
+---
 
-### Tab 2 · 3D elevation view
+## Bilinen sınırlar
 
-The **3D elevation view** tab shows the Arcadia Planitia crater from an orbital image (about 5 m/pixel, covering 43.5 km north–south × 39.0 km east–west) on a 3D surface, with real latitude/longitude read-out.
+- Mesafeler eğimi hesaba katmaz; gerçek yol biraz daha uzundur.
+- 3B kabartma görüntü parlaklığından türetilir; ölçülmüş yükseklik veya gerçek eğim değildir.
+- O₂ ve doz hesapları basit modellerdir (sabit hız, sabit tüketim). Planlama amaçlıdır, operasyonel karar için kullanılmamalıdır.
+- Görev planı basit dairesel yörünge modeline dayanır.
+- Harita karoları ve bazı GeoTIFF dosyaları ağdan yüklenir; çevrimdışı çalışmaz. "Layer 3" Google Drive'dan alınır, erişilemezse elle dosya seçilmelidir.
+- Dosya, Google Drive erişimi için bir **API anahtarı** içeriyor. Depoyu herkese açık yayınlamadan önce bu anahtarı kısıtlayın veya kaldırın.
 
-#### Control panel
+---
 
-![3D control panel](readme/06-3d-kontrol-paneli.png)
+## Veri kaynakları
 
-| Group | Control | What it does |
-|---|---|---|
-| **View** | **Tilt** | Tilts the camera from 0° (straight down) to 75° (oblique). |
-| | **Illustrative relief** | Adds relief to the surface, 0–12. Higher values exaggerate the shapes. |
-| **Markers** | **Crater center** | Shows/hides the orange ring at the crater centre (46.6249°N, 173.0323°W). |
-| | **Grid** | Shows/hides the white reference grid. |
-| **Measure** | **Clear** | Removes the two measurement points. |
-| | **Reset view** | Returns the camera to its default position, zoom and zero tilt. |
-
-#### Flat view (Tilt 65°, relief 0)
-
-![3D flat view](readme/07-3d-duz-gorunum.png)
-
-With relief at 0 the image lies flat and you see the crater floor and rim as a photograph. The orange ring is the crater centre; the cyan line is a **distance measurement** made by clicking two points. The box at the bottom-left follows the mouse and shows latitude, longitude, pixel coordinates and brightness (0–255) at the pointer.
-
-#### With illustrative relief
-
-![3D relief view](readme/08-3d-kabartma.png)
-
-Raising *Illustrative relief* lifts the surface according to image brightness, making the crater walls and surrounding terrain stand out.
-
-> [!WARNING]
-> **This relief is not measured elevation.** It is derived from image brightness (shadows read as low). Use it only to read shapes. For real elevation analysis use MOLA/HRSC DEM data.
-
-#### Measuring
-
-1. Click **two points** on the surface. Cyan markers and a line appear.
-2. The panel shows the **distance (km and m)** and the **bearing from north (°)**.
-3. A third click starts a new measurement; **Clear** also resets it.
-
-Distances use the Mars 2000 sphere (radius 3396.19 km) and the image's geographic scale (about 8.4 × 10⁻⁵ degrees per pixel).
-
-#### Mouse controls
-
-| Action | Result |
-|---|---|
-| Drag with left button | Pan the view |
-| Drag with right button | Rotate and tilt |
-| **Shift** + drag (when tilted) | Rotate and tilt |
-| Scroll wheel | Zoom in / out |
-| Single click | Place a measurement point |
-| Hover | Latitude / longitude / pixel / brightness read-out (bottom-left) |
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-## 🧮 Calculation model and assumptions
-
-| Parameter | Value |
-|---|---|
-| Mars radius (EVA distances) | 3389.5 km |
-| Distance formula | Haversine (great circle) |
-| Bearing | Initial compass bearing, 0–360°, north = 0° |
-| O₂ supply | 8 hours, **30 % reserve** held back (usable 5.6 h = 336 min) |
-| Surface dose rate | ≈ **0.67 mSv/day** (RAD measurements at Gale crater used as a reference) |
-| Solar particle event | Dose × 5 |
-| Mission-plan transit dose | 1.84 mSv/day in transit and return, 0.67 mSv/day on the surface |
-| Total mission dose limit | 600 mSv |
-| Rover speed | 10 km/h (4 crew) |
-| Walking speed | 5 km/h |
-| Default speed | 3 km/h |
-| Default stop time | 25 min per circle |
-| Orbit model | Circular, coplanar orbits at 1 AU and 1.524 AU |
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-## 📚 Data sources and technologies
-
-**Data**
-- [NASA/JPL Mars Trek](https://trek.nasa.gov/mars/): Viking, MOLA and THEMIS layers via WMTS
-- NASA Evolvable Mars Campaign (EMC) Exploration Zones
-- RAD dose measurements at Gale crater (dose reference)
-- CRISM, HiRISE and SHARAD observations (science-point rationale)
-
-**Libraries (loaded from CDNs)**
-- [Leaflet 1.9.4](https://leafletjs.com/): map engine (EPSG:4326)
-- [geotiff.js 2.1.3](https://geotiffjs.github.io/): reads the `.tif` overlays
-- [Three.js r128](https://threejs.org/): 3D viewer
-- Google Fonts: Inter, Fraunces, IBM Plex Mono
-
-<div align="center"><img src="readme/divider.svg" alt="" width="70%"></div>
-
-## 👥 Team and contact
-
-See `team.html` for the team and `contact.html` for contact details.
+- [NASA Mars Trek](https://trek.nasa.gov/mars/): Viking, MOLA, THEMIS katmanları
+- Arcadia Planitia verileri: HiRISE kaya haritası, CRISM, SHARAD
+- [api.nasa.gov](https://api.nasa.gov/), [code.nasa.gov](https://code.nasa.gov/), [NASA Learning Resources](https://www.nasa.gov/learning-resources/), [NASA Resources](https://www.nasa.gov/resources/)
+- Kütüphaneler: [Leaflet](https://leafletjs.com/) 1.9.4, [geotiff.js](https://geotiffjs.github.io/) 2.1.3, [three.js](https://threejs.org/) r128
+- Yazı tipleri: Inter, Fraunces, IBM Plex Mono
